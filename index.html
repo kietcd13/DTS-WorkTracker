@@ -27,13 +27,12 @@
     // 1. BẠN DÁN FIREBASE CONFIG CỦA BẠN VÀO ĐÂY
     // =========================================================================
     const firebaseConfig = {
-      // Ví dụ:
-      // apiKey: "AIzaSyB-xxxxxxxxxxxxxxxxxxx",
-      // authDomain: "your-project.firebaseapp.com",
-      // projectId: "your-project",
-      // storageBucket: "your-project.appspot.com",
-      // messagingSenderId: "1234567890",
-      // appId: "1:1234567890:web:abcdef123456"
+      apiKey: "AIzaSyDyl2FoFZwKtFL6yb2sPEEWzJvBBzNK01A",
+      authDomain: "taskhub-c3f41.firebaseapp.com",
+      projectId: "taskhub-c3f41",
+      storageBucket: "taskhub-c3f41.firebasestorage.app",
+      messagingSenderId: "874827473111",
+      appId: "1:874827473111:web:cdbd7c6b8d5ece0d285092"
     };
 
     let app, auth, db;
@@ -77,7 +76,7 @@
       'High Priority': 'text-red-600 bg-white border-slate-200',
       'On Hold': 'bg-red-600 text-white border-red-700',
       'Checking': 'bg-orange-400 text-black border-orange-500',
-      'Awaiting Further Info': 'bg-red-600 text-white border-red-700',
+      'Awaiting Further Info': 'bg-yellow-300 text-black border-yellow-400',
       'Completed': 'bg-emerald-500 text-white border-emerald-600'
     };
 
@@ -874,6 +873,14 @@
         .filter(phase => !PHASES.includes(phase))
         .reduce((sum, phase) => sum + parseFloat(phasesForm[phase]?.hoursSpent || 0), 0);
 
+      // Cố định thứ tự hiển thị của các Phase
+      const orderedPhaseNames = useMemo(() => {
+        const keys = Object.keys(phasesForm);
+        const basePhases = PHASES.filter(p => keys.includes(p));
+        const optionalPhases = keys.filter(p => !PHASES.includes(p));
+        return [...basePhases, ...optionalPhases];
+      }, [phasesForm]);
+
       return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-[0_20px_50px_rgba(8,_112,_184,_0.15)] w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] border border-white relative">
@@ -978,7 +985,7 @@
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {Object.keys(phasesForm).map((phaseName, index) => {
+                    {orderedPhaseNames.map((phaseName, index) => {
                       const data = phasesForm[phaseName];
                       const isEven = index % 2 === 0;
                       const isBasePhase = PHASES.includes(phaseName);
