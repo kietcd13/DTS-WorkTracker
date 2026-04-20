@@ -145,6 +145,11 @@
         setSelectedJob(null);
       };
 
+      const handleDeleteJob = (jobId) => {
+        setProjects(projects.filter(p => p.id !== jobId));
+        setSelectedJob(null);
+      };
+
       if (!currentUser) {
         return (
           <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-cyan-50 flex items-center justify-center p-4">
@@ -271,6 +276,7 @@
               users={users}
               onClose={() => setSelectedJob(null)} 
               onSave={handleSaveJobDetails}
+              onDelete={handleDeleteJob}
             />
           )}
 
@@ -684,8 +690,7 @@
         </div>
       );
     }
-
-    function JobProgressModal({ job, currentUser, users, onClose, onSave }) {
+    function JobProgressModal({ job, currentUser, users, onClose, onSave, onDelete }) {
       const [phasesForm, setPhasesForm] = useState({ ...job.phases });
       const [jobInfoForm, setJobInfoForm] = useState({
         priority: job.priority || 'Medium',
@@ -695,6 +700,7 @@
       });
       const [selectedOptPhase, setSelectedOptPhase] = useState(OPTIONAL_PHASES[0]);
       const [errorMsg, setErrorMsg] = useState('');
+      const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
       
       const isEditable = currentUser.role === 'Manager' || job.ownerId === currentUser.id;
 
@@ -782,8 +788,24 @@
 
       return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-[0_20px_50px_rgba(8,_112,_184,_0.15)] w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] border border-white">
+          <div className="bg-white rounded-2xl shadow-[0_20px_50px_rgba(8,_112,_184,_0.15)] w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] border border-white relative">
             
+            {showDeleteConfirm && (
+              <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div className="bg-white p-6 rounded-2xl shadow-xl border border-red-100 text-center max-w-sm">
+                  <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Trash2 className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800 mb-2">Delete this job?</h3>
+                  <p className="text-sm text-slate-500 mb-6">This action cannot be undone. All progress and logged hours will be lost.</p>
+                  <div className="flex gap-3 justify-center">
+                    <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 font-bold text-sm transition-colors text-slate-700">Cancel</button>
+                    <button onClick={() => onDelete(job.id)} className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold text-sm shadow-md transition-all">Yes, Delete</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="px-6 py-5 border-b flex justify-between items-start bg-gradient-to-r from-indigo-50 to-white">
               <div className="flex-1 pr-4">
                 <div className="flex items-center gap-3">
@@ -844,9 +866,16 @@
                   </div>
                 </div>
               </div>
-              <button onClick={onClose} className="p-2 bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-full transition-colors shadow-sm border border-slate-100 shrink-0">
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                {isEditable && (
+                  <button onClick={() => setShowDeleteConfirm(true)} className="p-2 bg-white hover:bg-red-50 text-red-400 hover:text-red-600 rounded-full transition-colors shadow-sm border border-red-100" title="Delete Job">
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                )}
+                <button onClick={onClose} className="p-2 bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-full transition-colors shadow-sm border border-slate-100">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <div className="p-6 overflow-y-auto flex-1 bg-slate-50/50">
