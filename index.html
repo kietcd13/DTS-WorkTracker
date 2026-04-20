@@ -21,8 +21,25 @@
 <body class="bg-slate-50 text-slate-800 font-sans antialiased">
   <div id="root"></div>
 
-  <script type="text/babel">
+  <!-- Sử dụng data-type="module" để Babel cho phép import Firebase -->
+  <script type="text/babel" data-type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
     const { useState, useMemo, useEffect } = React;
+
+    // --- CẤU HÌNH FIREBASE CLOUD STORAGE ---
+    let app, auth, db, appId;
+    try {
+      const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    } catch (e) {
+      console.error("Firebase config is missing or invalid. App will not save data permanently.", e);
+    }
 
     // --- ICONS COMPONENTS (Inline SVGs) ---
     const FolderGit2 = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v2"/><path d="M12 10v4h4"/><path d="m12 14 1.5-1.5"/><path d="M22 13v1"/><path d="M22 17v3a2 2 0 0 1-2 2h-9"/></svg>;
@@ -41,22 +58,8 @@
     const Download = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
 
     // --- CONSTANTS & MOCK DATA ---
-    const PHASES = [
-      'Pre-Design',
-      'DFM - Wall Panels',
-      'DFM - Floor Cassette',
-      'DFM - Roof Panels',
-      'DFM - Lookouts'
-    ];
-
-    const OPTIONAL_PHASES = [
-      'Update Pre - Design',
-      'Update DFM - Wall Panels',
-      'Update DFM - Floor Cassette',
-      'Update DFM - Roof Panels',
-      'Update DFM - Lookouts'
-    ];
-
+    const PHASES = ['Pre-Design', 'DFM - Wall Panels', 'DFM - Floor Cassette', 'DFM - Roof Panels', 'DFM - Lookouts'];
+    const OPTIONAL_PHASES = ['Update Pre - Design', 'Update DFM - Wall Panels', 'Update DFM - Floor Cassette', 'Update DFM - Roof Panels', 'Update DFM - Lookouts'];
     const PROGRESS_STATUSES = ['Not Started', 'In Progress', 'Checking', 'On Hold', 'Completed'];
     const BUILDING_TYPES = ['Bungalow', '2-Storey', '2.5-Storey'];
     const PRIORITIES = ['High', 'Medium', 'Low', 'Completed'];
@@ -76,63 +79,95 @@
 
     const generateInitialPhases = () => {
       const phases = {};
-      PHASES.forEach(p => {
-        phases[p] = { progress: 'Not Started', hoursSpent: 0, dateSent: '' };
-      });
+      PHASES.forEach(p => { phases[p] = { progress: 'Not Started', hoursSpent: 0, dateSent: '' }; });
       return phases;
     };
 
     const INITIAL_USERS = [
       { id: 'm1', name: 'Kiet Vu', role: 'Manager' },
       { id: 's1', name: 'John Doe', role: 'Staff' },
-      { id: 's2', name: 'Jane Smith', role: 'Staff' },
     ];
 
-    const INITIAL_PROJECTS = [
-      { 
-        id: 'p1', 
-        jobName: 'Alpha Tower',
-        ref: 'REF-001',
-        receivedDate: '2026-04-10',
-        startedDate: '2026-04-12',
-        ownerId: 's1', 
-        dueDate: '2026-05-20',
-        buildingType: '2-Storey',
-        priority: 'High',
-        phases: generateInitialPhases()
-      }
-    ];
-
+    // --- MAIN APP COMPONENT ---
     function App() {
-      const [users, setUsers] = useState(INITIAL_USERS);
-      const [projects, setProjects] = useState(INITIAL_PROJECTS);
-      const [currentUser, setCurrentUser] = useState(null);
+      const [firebaseUser, setFirebaseUser] = useState(null);
+      const [isDataLoaded, setIsDataLoaded] = useState(false);
       
+      const [users, setUsers] = useState([]);
+      const [projects, setProjects] = useState([]);
+      
+      const [currentUser, setCurrentUser] = useState(null);
       const [selectedUserId, setSelectedUserId] = useState('');
       const [newStaffName, setNewStaffName] = useState('');
 
       const [selectedJob, setSelectedJob] = useState(null);
       const [showManageStaffModal, setShowManageStaffModal] = useState(false);
 
-      const handleLogin = () => {
-        const user = users.find(u => u.id === selectedUserId);
-        if (user) setCurrentUser(user);
-      };
+      // 1. Firebase Auth Setup
+      useEffect(() => {
+        if (!auth) {
+            setIsDataLoaded(true); // Fallback local if no Firebase
+            return;
+        }
+        const initAuth = async () => {
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } else {
+            await signInAnonymously(auth);
+          }
+        };
+        initAuth();
+        const unsubscribe = onAuthStateChanged(auth, setFirebaseUser);
+        return () => unsubscribe();
+      }, []);
 
-      const handleCreateStaff = (e) => {
+      // 2. Fetch Data from Firestore
+      useEffect(() => {
+        if (!firebaseUser || !db) return;
+
+        let isSeeding = false;
+
+        // Fetch Users
+        const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'team_users');
+        const unsubUsers = onSnapshot(usersRef, (snapshot) => {
+          const loadedUsers = [];
+          snapshot.forEach(doc => loadedUsers.push(doc.data()));
+
+          if (snapshot.empty && !isSeeding) {
+            isSeeding = true;
+            INITIAL_USERS.forEach(u => setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'team_users', u.id), u));
+          } else {
+            setUsers(loadedUsers);
+          }
+        });
+
+        // Fetch Projects
+        const projectsRef = collection(db, 'artifacts', appId, 'public', 'data', 'team_projects');
+        const unsubProjects = onSnapshot(projectsRef, (snapshot) => {
+          const loadedProjects = [];
+          snapshot.forEach(doc => loadedProjects.push(doc.data()));
+          setProjects(loadedProjects);
+          setIsDataLoaded(true);
+        });
+
+        return () => { unsubUsers(); unsubProjects(); };
+      }, [firebaseUser]);
+
+      // --- FIREBASE CRUD HANDLERS ---
+      const handleCreateStaff = async (e) => {
         e.preventDefault();
         if (!newStaffName.trim()) return;
-        const newUser = {
-          id: `s${Date.now()}`,
-          name: newStaffName,
-          role: 'Staff'
-        };
-        setUsers([...users, newUser]);
+        const newUser = { id: `s${Date.now()}`, name: newStaffName, role: 'Staff' };
+        if (db) {
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'team_users', newUser.id), newUser);
+        }
         setNewStaffName('');
       };
 
-      const handleRemoveStaff = (userId) => {
-        setUsers(users.filter(u => u.id !== userId));
+      const handleRemoveStaff = async (userId) => {
+        if (db) {
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'team_users', userId));
+        }
         if (currentUser && currentUser.id === userId) {
           setCurrentUser(null);
           setSelectedUserId('');
@@ -140,15 +175,35 @@
         }
       };
 
-      const handleSaveJobDetails = (jobId, updatedData) => {
-        setProjects(projects.map(p => p.id === jobId ? { ...p, ...updatedData } : p));
+      const handleSaveJobDetails = async (jobId, updatedData) => {
+        if (db) {
+            const existing = projects.find(p => p.id === jobId);
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'team_projects', jobId), { ...existing, ...updatedData });
+        }
         setSelectedJob(null);
       };
 
-      const handleDeleteJob = (jobId) => {
-        setProjects(projects.filter(p => p.id !== jobId));
+      const handleDeleteJob = async (jobId) => {
+        if (db) {
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'team_projects', jobId));
+        }
         setSelectedJob(null);
       };
+
+      const handleLogin = () => {
+        const user = users.find(u => u.id === selectedUserId);
+        if (user) setCurrentUser(user);
+      };
+
+      // Loading screen
+      if (!isDataLoaded) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-cyan-50 flex flex-col items-center justify-center p-4">
+                <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+                <h2 className="text-xl font-bold text-slate-700">Connecting to Cloud Storage...</h2>
+            </div>
+        );
+      }
 
       if (!currentUser) {
         return (
@@ -257,7 +312,7 @@
             {currentUser.role === 'Manager' ? (
               <ManagerDashboard 
                 users={users} 
-                projects={projects} setProjects={setProjects} 
+                projects={projects}
                 onJobClick={setSelectedJob}
               />
             ) : (
@@ -350,14 +405,15 @@
       );
     }
 
-    function ManagerDashboard({ users, projects, setProjects, onJobClick }) {
+    // --- MANAGER DASHBOARD ---
+    function ManagerDashboard({ users, projects, onJobClick }) {
       const [activeTab, setActiveTab] = useState('list');
       
       const [newJob, setNewJob] = useState({ 
         jobName: '', ref: '', receivedDate: '', startedDate: '', ownerId: '', dueDate: '', buildingType: '', priority: 'Medium' 
       });
 
-      const handleCreateJob = (e) => {
+      const handleCreateJob = async (e) => {
         e.preventDefault();
         if (!newJob.jobName.trim()) return;
         
@@ -366,14 +422,17 @@
           ...newJob,
           phases: generateInitialPhases()
         };
-        setProjects([...projects, project]);
+        
+        // Push directly to Firestore instead of local state array
+        if (db) {
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'team_projects', project.id), project);
+        }
+
         setNewJob({ jobName: '', ref: '', receivedDate: '', startedDate: '', ownerId: '', dueDate: '', buildingType: '', priority: 'Medium' });
         setActiveTab('list');
       };
 
-      // Hàm xử lý xuất file Excel
       const handleExport = () => {
-        // Lấy tất cả các phase (bao gồm cả optional) để tạo cột
         const allPhasesSet = new Set(PHASES);
         projects.forEach(p => {
           Object.keys(p.phases).forEach(phase => allPhasesSet.add(phase));
@@ -383,7 +442,6 @@
         const excelData = projects.map(p => {
           const owner = users.find(u => u.id === p.ownerId)?.name || 'Unassigned';
 
-          // Tính tổng số giờ
           const preDesignHrs = parseFloat(p.phases['Pre-Design']?.hoursSpent || 0);
           const totalDfmHrs = ['DFM - Wall Panels', 'DFM - Floor Cassette', 'DFM - Roof Panels', 'DFM - Lookouts']
             .reduce((sum, phase) => sum + parseFloat(p.phases[phase]?.hoursSpent || 0), 0);
@@ -406,7 +464,6 @@
             'Total Hrs': preDesignHrs + totalDfmHrs + updatesHrs
           };
 
-          // Thêm chi tiết từng phase
           allPhases.forEach(phase => {
             const phaseData = p.phases[phase];
             row[`${phase} - Progress`] = phaseData ? phaseData.progress : '';
@@ -417,7 +474,6 @@
           return row;
         });
 
-        // Tạo và tải file
         const worksheet = XLSX.utils.json_to_sheet(excelData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
@@ -690,6 +746,7 @@
         </div>
       );
     }
+
     function JobProgressModal({ job, currentUser, users, onClose, onSave, onDelete }) {
       const [phasesForm, setPhasesForm] = useState({ ...job.phases });
       const [jobInfoForm, setJobInfoForm] = useState({
@@ -704,7 +761,6 @@
       
       const isEditable = currentUser.role === 'Manager' || job.ownerId === currentUser.id;
 
-      // Tự động điều chỉnh Priority dựa vào tiến độ các Phase
       useEffect(() => {
         const phases = Object.values(phasesForm);
         if (phases.length === 0) return;
@@ -717,7 +773,6 @@
         }
       }, [phasesForm]);
 
-      // Hàm xác định màu sắc cho Progress
       const getProgressStyles = (progress, hasError) => {
         if (hasError) return 'bg-red-50 border-red-400 text-red-900 ring-2 ring-red-400';
         switch (progress) {
@@ -778,12 +833,11 @@
       const priorityClass = PRIORITY_STYLES[jobInfoForm.priority] || PRIORITY_STYLES['Low'];
       const staffUsers = users.filter(u => u.role === 'Staff');
 
-      // Tự động tính toán tổng số giờ
       const preDesignHrs = parseFloat(phasesForm['Pre-Design']?.hoursSpent || 0);
       const totalDfmHrs = ['DFM - Wall Panels', 'DFM - Floor Cassette', 'DFM - Roof Panels', 'DFM - Lookouts']
         .reduce((sum, phase) => sum + parseFloat(phasesForm[phase]?.hoursSpent || 0), 0);
       const updatesHrs = Object.keys(phasesForm)
-        .filter(phase => !PHASES.includes(phase)) // Các phase không nằm trong danh sách mặc định là optional updates
+        .filter(phase => !PHASES.includes(phase))
         .reduce((sum, phase) => sum + parseFloat(phasesForm[phase]?.hoursSpent || 0), 0);
 
       return (
