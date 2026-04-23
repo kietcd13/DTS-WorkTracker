@@ -37,7 +37,6 @@
 
     let app, auth, db;
     try {
-      // Nếu không có config, tự hiểu là không dùng DB
       if(Object.keys(firebaseConfig).length > 0) {
           app = initializeApp(firebaseConfig);
           auth = getAuth(app);
@@ -55,7 +54,7 @@
     const UserPlus = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>;
     const FileText = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>;
     const Trash2 = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>;
-    const Users = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+    const UsersIcon = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
     const ArrowUpDown = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="15" x2="7" y2="3"/><polyline points="3 11 7 15 11 11"/><line x1="17" y1="9" x2="17" y2="21"/><polyline points="13 13 17 9 21 13"/></svg>;
     const ChevronUp = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>;
     const ChevronDown = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>;
@@ -64,22 +63,54 @@
     const Download = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
     const Pencil = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>;
 
+    // PRIORITY ICONS
+    const PriorityLow = ({className}) => (
+      <svg className={`text-lime-500 ${className}`} viewBox="0 0 24 24">
+        <path d="M12 2.5L1.5 21h21L12 2.5z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+        <rect x="11" y="9" width="2" height="5.5" rx="0.5" fill="white"/>
+        <circle cx="12" cy="17.5" r="1.25" fill="white"/>
+      </svg>
+    );
+    const PriorityMedium = ({className}) => (
+      <svg className={`text-amber-400 ${className}`} viewBox="0 0 24 24">
+        <path d="M12 2.5L1.5 21h21L12 2.5z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+        <rect x="9" y="9" width="2" height="5.5" rx="0.5" fill="white"/>
+        <circle cx="10" cy="17.5" r="1.25" fill="white"/>
+        <rect x="13" y="9" width="2" height="5.5" rx="0.5" fill="white"/>
+        <circle cx="14" cy="17.5" r="1.25" fill="white"/>
+      </svg>
+    );
+    const PriorityHigh = ({className}) => (
+      <svg className={`text-red-500 ${className}`} viewBox="0 0 24 24">
+        <path d="M12 2.5L1.5 21h21L12 2.5z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+        <rect x="7.5" y="9" width="1.8" height="5.5" rx="0.5" fill="white"/>
+        <circle cx="8.4" cy="17.5" r="1.1" fill="white"/>
+        <rect x="11.1" y="9" width="1.8" height="5.5" rx="0.5" fill="white"/>
+        <circle cx="12" cy="17.5" r="1.1" fill="white"/>
+        <rect x="14.7" y="9" width="1.8" height="5.5" rx="0.5" fill="white"/>
+        <circle cx="15.6" cy="17.5" r="1.1" fill="white"/>
+      </svg>
+    );
+
     // --- CONSTANTS & MOCK DATA ---
     const PHASES = ['Pre-Design', 'DFM - Wall Panels', 'DFM - Floor Cassette', 'DFM - Roof Panels', 'DFM - Lookouts'];
     const OPTIONAL_PHASES = ['Update Pre - Design', 'Update DFM - Wall Panels', 'Update DFM - Floor Cassette', 'Update DFM - Roof Panels', 'Update DFM - Lookouts'];
     const PROGRESS_STATUSES = ['Not Started', 'In Progress', 'Checking', 'On Hold', 'Completed'];
     const BUILDING_TYPES = ['Bungalow', '2 Storey', '2.5 Storey'];
-    const STATUSES = ['Low Priority', 'Medium Priority', 'High Priority', 'In Process', 'On Hold', 'Checking', 'Awaiting Further Info', 'Completed'];
+    
+    const PRIORITIES = ['High', 'Medium', 'Low', 'None'];
+    const STATUSES = ['In Process', 'On Hold', 'Checking', 'Awaiting Further Info', 'Completed'];
 
     const STATUS_STYLES = {
-      'Low Priority': 'text-emerald-600 bg-white border-slate-200',
-      'Medium Priority': 'text-orange-600 bg-white border-slate-200',
-      'High Priority': 'text-red-600 bg-white border-slate-200',
       'In Process': 'bg-blue-500 text-white border-blue-600',
       'On Hold': 'bg-red-600 text-white border-red-700',
       'Checking': 'bg-orange-400 text-black border-orange-500',
       'Awaiting Further Info': 'bg-yellow-300 text-black border-yellow-400',
-      'Completed': 'bg-emerald-500 text-white border-emerald-600'
+      'Completed': 'bg-emerald-500 text-white border-emerald-600',
+      // Giữ lại để render dữ liệu cũ chưa migrate
+      'Low Priority': 'text-emerald-600 bg-white border-slate-200',
+      'Medium Priority': 'text-orange-600 bg-white border-slate-200',
+      'High Priority': 'text-red-600 bg-white border-slate-200',
     };
 
     const OWNER_COLORS = [
@@ -94,7 +125,22 @@
       return phases;
     };
 
-    // Dữ liệu mẫu ban đầu (Đã được nạp dựa trên file excel)
+    // Hàm hỗ trợ lọc dữ liệu cũ (lấy priority từ mảng status cũ)
+    const extractPriority = (p) => {
+      if (p.priority && p.priority !== 'None') return p.priority;
+      const arr = Array.isArray(p.status) ? p.status : (p.status ? [p.status] : []);
+      if (arr.includes('High Priority')) return 'High';
+      if (arr.includes('Medium Priority')) return 'Medium';
+      if (arr.includes('Low Priority')) return 'Low';
+      return 'None';
+    };
+
+    const extractStatuses = (p) => {
+      const arr = Array.isArray(p.status) ? p.status : (p.status ? [p.status] : []);
+      return arr.filter(s => !s.includes('Priority'));
+    };
+
+    // Dữ liệu mẫu ban đầu
     const INITIAL_USERS = [
       { id: 'm1', name: 'Kiet Vu', role: 'Manager' },
       { id: 'm2', name: 'Huy Tang', role: 'Manager' },
@@ -106,29 +152,7 @@
     ];
 
     const INITIAL_PROJECTS = [
-      { id: 'p1', jobName: 'Fletcher (Mid)', ref: 'FL-T', receivedDate: '2025-12-02', startedDate: '2025-12-05', ownerId: 'u1', dueDate: '2026-01-09', buildingType: '2.5 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 3, dateSent: '2026-01-14' }, 'DFM - Wall Panels': { progress: 'Completed', hoursSpent: 12, dateSent: '2026-01-14' }, 'DFM - Floor Cassette': { progress: 'Completed', hoursSpent: 5, dateSent: '2026-01-14' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 5, dateSent: '2026-01-14' }, 'Update DFM - Wall Panels (2)': { progress: 'Completed', hoursSpent: 47.5, dateSent: '2026-02-13' }, 'Update DFM - Wall Panels (3)': { progress: 'In Progress', hoursSpent: 31, dateSent: '' } } },
-      { id: 'p2', jobName: 'Fuller', ref: 'FR-D', receivedDate: '2025-12-02', startedDate: '2025-12-17', ownerId: 'u2', dueDate: '2026-01-16', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 8.5, dateSent: '2026-01-07' }, 'DFM - Wall Panels': { progress: 'Completed', hoursSpent: 23, dateSent: '2026-01-07' }, 'DFM - Floor Cassette': { progress: 'Completed', hoursSpent: 7.5, dateSent: '2026-01-07' }, 'DFM - Roof Panels': { progress: 'Completed', hoursSpent: 4, dateSent: '2026-02-13' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 10.5, dateSent: '2026-02-13' }, 'Update DFM - Wall Panels (2)': { progress: 'Completed', hoursSpent: 21.5, dateSent: '2026-03-27' } } },
-      { id: 'p3', jobName: 'Lacemaker', ref: 'LA-S', receivedDate: '2025-12-02', startedDate: '2025-12-18', ownerId: 'u3', dueDate: '2026-01-16', buildingType: '2.5 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 10, dateSent: '2026-01-14' }, 'DFM - Wall Panels': { progress: 'Completed', hoursSpent: 41, dateSent: '2026-01-14' }, 'DFM - Floor Cassette': { progress: 'Completed', hoursSpent: 28.5, dateSent: '2026-01-14' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'In Progress', hoursSpent: 5, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 1, dateSent: '2026-01-16' }, 'Update DFM - Wall Panels (2)': { progress: 'Completed', hoursSpent: 33, dateSent: '2026-02-13' }, 'Update DFM - Wall Panels (3)': { progress: 'Completed', hoursSpent: 51, dateSent: '2026-03-24' } } },
-      { id: 'p4', jobName: 'Manciple-Life (End)', ref: 'MP-S', receivedDate: '2025-12-02', startedDate: '2025-12-17', ownerId: 'u4', dueDate: '2026-01-16', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 8.5, dateSent: '2026-01-07' }, 'DFM - Wall Panels': { progress: 'Completed', hoursSpent: 16.5, dateSent: '2026-01-07' }, 'DFM - Floor Cassette': { progress: 'Completed', hoursSpent: 12, dateSent: '2026-01-07' }, 'DFM - Roof Panels': { progress: 'Completed', hoursSpent: 4, dateSent: '2026-02-12' }, 'DFM - Lookouts': { progress: 'In Progress', hoursSpent: 8, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 17, dateSent: '2026-02-12' }, 'Update DFM - Wall Panels (2)': { progress: 'Completed', hoursSpent: 19.5, dateSent: '2026-03-24' } } },
-      { id: 'p5', jobName: 'Manciple-Life (Mid)', ref: 'MP-T', receivedDate: '2025-12-02', startedDate: '2025-12-17', ownerId: 'u4', dueDate: '2026-01-16', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 3.5, dateSent: '2026-01-09' }, 'DFM - Wall Panels': { progress: 'Completed', hoursSpent: 12.5, dateSent: '2026-01-09' }, 'DFM - Floor Cassette': { progress: 'Completed', hoursSpent: 4, dateSent: '2026-01-09' }, 'DFM - Roof Panels': { progress: 'Completed', hoursSpent: 1, dateSent: '2026-02-12' }, 'DFM - Lookouts': { progress: 'In Progress', hoursSpent: 5.5, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 8, dateSent: '2026-02-12' }, 'Update DFM - Wall Panels (2)': { progress: 'Completed', hoursSpent: 22, dateSent: '2026-03-24' } } },
-      { id: 'p6', jobName: 'Milliner', ref: 'MI-D', receivedDate: '2025-12-02', startedDate: '2025-12-17', ownerId: 'u5', dueDate: '2026-01-23', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 11.5, dateSent: '2026-01-09' }, 'DFM - Wall Panels': { progress: 'Completed', hoursSpent: 27.5, dateSent: '2026-01-09' }, 'DFM - Floor Cassette': { progress: 'Completed', hoursSpent: 19, dateSent: '2026-01-09' }, 'DFM - Roof Panels': { progress: 'Completed', hoursSpent: 8.5, dateSent: '2026-02-13' }, 'DFM - Lookouts': { progress: 'In Progress', hoursSpent: 4, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 23, dateSent: '2026-02-24' }, 'Update DFM - Wall Panels (2)': { progress: 'Completed', hoursSpent: 35, dateSent: '2026-03-24' }, 'Update DFM - Wall Panels (3)': { progress: 'Completed', hoursSpent: 10.5, dateSent: '2026-03-30' } } },
-      { id: 'p7', jobName: 'Milliner-Life', ref: 'SR-D', receivedDate: '2025-12-02', startedDate: '2025-09-01', ownerId: 'u5', dueDate: '2026-01-23', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'In Progress', hoursSpent: 2, dateSent: '' }, 'DFM - Wall Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Floor Cassette': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' } } },
-      { id: 'p8', jobName: 'Quilter', ref: 'QU-D', receivedDate: '2025-12-02', startedDate: '2026-01-06', ownerId: 'u2', dueDate: '2026-01-23', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 6, dateSent: '2026-01-15' }, 'DFM - Wall Panels': { progress: 'Completed', hoursSpent: 12, dateSent: '2026-01-15' }, 'DFM - Floor Cassette': { progress: 'Completed', hoursSpent: 10, dateSent: '2026-01-15' }, 'DFM - Roof Panels': { progress: 'Completed', hoursSpent: 3, dateSent: '2026-02-13' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 7.5, dateSent: '2026-02-13' }, 'Update DFM - Wall Panels (2)': { progress: 'Completed', hoursSpent: 19, dateSent: '2026-03-27' } } },
-      { id: 'p9', jobName: 'Reedmaker-Life', ref: 'RE-D', receivedDate: '2025-12-02', startedDate: '2026-01-12', ownerId: 'u5', dueDate: '2026-01-23', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 6.5, dateSent: '2026-01-21' }, 'DFM - Wall Panels': { progress: 'Completed', hoursSpent: 20, dateSent: '2026-01-21' }, 'DFM - Floor Cassette': { progress: 'Completed', hoursSpent: 14, dateSent: '2026-01-21' }, 'DFM - Roof Panels': { progress: 'Completed', hoursSpent: 6, dateSent: '2026-02-13' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 15.5, dateSent: '2026-02-13' }, 'Update DFM - Wall Panels (2)': { progress: 'Completed', hoursSpent: 34, dateSent: '2026-03-31' } } },
-      { id: 'p10', jobName: 'Silversmith', ref: 'SI-D', receivedDate: '2025-12-02', startedDate: '2026-01-08', ownerId: 'u4', dueDate: '2026-01-30', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 9, dateSent: '2026-01-21' }, 'DFM - Wall Panels': { progress: 'Completed', hoursSpent: 16, dateSent: '2026-01-21' }, 'DFM - Floor Cassette': { progress: 'Completed', hoursSpent: 16, dateSent: '2026-01-21' }, 'DFM - Roof Panels': { progress: 'Completed', hoursSpent: 3, dateSent: '2026-02-12' }, 'DFM - Lookouts': { progress: 'In Progress', hoursSpent: 8.5, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 15, dateSent: '2026-02-12' }, 'Update DFM - Wall Panels (2)': { progress: 'Completed', hoursSpent: 23.5, dateSent: '2026-03-25' } } },
-      { id: 'p11', jobName: 'Slater', ref: 'SL-S', receivedDate: '2025-12-02', startedDate: '2026-01-12', ownerId: 'u3', dueDate: '2026-01-30', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 4.5, dateSent: '2026-01-21' }, 'DFM - Wall Panels': { progress: 'Completed', hoursSpent: 11.5, dateSent: '2026-01-21' }, 'DFM - Floor Cassette': { progress: 'Completed', hoursSpent: 8, dateSent: '2026-01-21' }, 'DFM - Roof Panels': { progress: 'Completed', hoursSpent: 3.5, dateSent: '2026-02-13' }, 'DFM - Lookouts': { progress: 'In Progress', hoursSpent: 3, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 21, dateSent: '2026-02-13' }, 'Update DFM - Wall Panels (2)': { progress: 'Completed', hoursSpent: 42, dateSent: '2026-03-25' }, 'Update DFM - Wall Panels (3)': { progress: 'Completed', hoursSpent: 11, dateSent: '2026-03-30' } } },
-      { id: 'p12', jobName: 'Poet', ref: 'PT-L', receivedDate: '2026-03-16', startedDate: '2026-03-23', ownerId: 'u1', dueDate: '2026-04-07', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 11, dateSent: '2026-03-24' }, 'DFM - Wall Panels': { progress: 'In Progress', hoursSpent: 21, dateSent: '' }, 'DFM - Floor Cassette': { progress: 'In Progress', hoursSpent: 12.5, dateSent: '' }, 'DFM - Roof Panels': { progress: 'In Progress', hoursSpent: 8.5, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'In Progress', hoursSpent: 14.5, dateSent: '' } } },
-      { id: 'p13', jobName: 'Sailmaker', ref: 'SA-L', receivedDate: '2026-03-16', startedDate: '2026-03-23', ownerId: 'u1', dueDate: '2026-04-09', buildingType: '2.5 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 9, dateSent: '2026-03-26' }, 'DFM - Wall Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Floor Cassette': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' } } },
-      { id: 'p14', jobName: 'Sailmaker - Support', ref: 'SA-L', receivedDate: '2026-03-16', startedDate: '2026-03-30', ownerId: 'u3', dueDate: '2026-04-09', buildingType: '2.5 Storey', status: [], phases: { 'Pre-Design': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Wall Panels': { progress: 'In Progress', hoursSpent: 26, dateSent: '' }, 'DFM - Floor Cassette': { progress: 'In Progress', hoursSpent: 19.5, dateSent: '' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'In Progress', hoursSpent: 4.5, dateSent: '' } } },
-      { id: 'p15', jobName: 'Wainwright', ref: 'WW', receivedDate: '2026-03-16', startedDate: '2026-03-26', ownerId: 'u1', dueDate: '2026-04-16', buildingType: '2.5 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 6.5, dateSent: '2026-03-27' }, 'DFM - Wall Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Floor Cassette': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' } } },
-      { id: 'p16', jobName: 'Wainwright - Support', ref: 'WW', receivedDate: '2026-03-16', startedDate: '2026-03-31', ownerId: 'u4', dueDate: '2026-04-16', buildingType: '2.5 Storey', status: [], phases: { 'Pre-Design': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Wall Panels': { progress: 'In Progress', hoursSpent: 16.5, dateSent: '' }, 'DFM - Floor Cassette': { progress: 'In Progress', hoursSpent: 14.5, dateSent: '' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' } } },
-      { id: 'p17', jobName: 'MELBOURNE DET P309', ref: '240281-P702', receivedDate: '2026-03-25', startedDate: '2026-04-02', ownerId: 'u2', dueDate: '2026-04-24', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 1, dateSent: '2026-04-03' }, 'DFM - Wall Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Floor Cassette': { progress: 'In Progress', hoursSpent: 1, dateSent: '' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 2, dateSent: '2026-04-09' }, 'Update DFM - Wall Panels (2)': { progress: 'Completed', hoursSpent: 2, dateSent: '2026-04-20' }, 'Update DFM - Wall Panels (3)': { progress: 'In Progress', hoursSpent: 1, dateSent: '' } } },
-      { id: 'p18', jobName: 'MELBOURNE END P44', ref: '240281-P701', receivedDate: '2026-03-25', startedDate: '2026-03-30', ownerId: 'u2', dueDate: '2026-04-20', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 6, dateSent: '2026-04-02' }, 'DFM - Wall Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Floor Cassette': { progress: 'In Progress', hoursSpent: 7, dateSent: '' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 2, dateSent: '2026-04-09' }, 'Update DFM - Wall Panels (2)': { progress: 'Completed', hoursSpent: 2, dateSent: '2026-04-20' }, 'Update DFM - Wall Panels (3)': { progress: 'In Progress', hoursSpent: 1, dateSent: '' } } },
-      { id: 'p19', jobName: 'SOMERBY P66', ref: '240281-P705', receivedDate: '2026-03-25', startedDate: '2026-03-30', ownerId: 'u4', dueDate: '2026-05-08', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 6.5, dateSent: '2026-04-02' }, 'DFM - Wall Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Floor Cassette': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 2.5, dateSent: '2026-04-08' } } },
-      { id: 'p20', jobName: 'THORNTON P50', ref: '240281-P706', receivedDate: '2026-03-25', startedDate: '2026-04-03', ownerId: 'u5', dueDate: '2026-05-13', buildingType: 'Bungalow', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 3, dateSent: '2026-04-09' }, 'DFM - Wall Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Floor Cassette': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 4, dateSent: '2026-04-09' } } },
-      { id: 'p21', jobName: 'TRITON END FG P377', ref: '240281-P704', receivedDate: '2026-03-25', startedDate: '2026-04-03', ownerId: 'u5', dueDate: '2026-05-08', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'In Progress', hoursSpent: 3.5, dateSent: '' }, 'DFM - Wall Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Floor Cassette': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' } } },
-      { id: 'p22', jobName: 'TRITON END P45', ref: '240281-P703', receivedDate: '2026-03-25', startedDate: '2026-03-31', ownerId: 'u5', dueDate: '2026-04-29', buildingType: '2 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 6.5, dateSent: '2026-04-02' }, 'DFM - Wall Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Floor Cassette': { progress: 'In Progress', hoursSpent: 7.5, dateSent: '' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 6, dateSent: '2026-04-09' } } },
-      { id: 'p23', jobName: 'WORCESTER P318', ref: '240281-P707', receivedDate: '2026-03-25', startedDate: '2026-04-03', ownerId: 'u2', dueDate: '2026-05-20', buildingType: '2.5 Storey', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 8, dateSent: '2026-04-09' }, 'DFM - Wall Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Floor Cassette': { progress: 'In Progress', hoursSpent: 9.5, dateSent: '' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 2.5, dateSent: '2026-04-20' }, 'Update DFM - Wall Panels (2)': { progress: 'In Progress', hoursSpent: 4, dateSent: '' } } }
+      { id: 'p1', jobName: 'Fletcher (Mid)', ref: 'FL-T', receivedDate: '2025-12-02', startedDate: '2025-12-05', ownerId: 'u1', dueDate: '2026-01-09', buildingType: '2.5 Storey', priority: 'High', status: [], phases: { 'Pre-Design': { progress: 'Completed', hoursSpent: 3, dateSent: '2026-01-14' }, 'DFM - Wall Panels': { progress: 'Completed', hoursSpent: 12, dateSent: '2026-01-14' }, 'DFM - Floor Cassette': { progress: 'Completed', hoursSpent: 5, dateSent: '2026-01-14' }, 'DFM - Roof Panels': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'DFM - Lookouts': { progress: 'Not Started', hoursSpent: 0, dateSent: '' }, 'Update DFM - Wall Panels': { progress: 'Completed', hoursSpent: 5, dateSent: '2026-01-14' }, 'Update DFM - Wall Panels (2)': { progress: 'Completed', hoursSpent: 47.5, dateSent: '2026-02-13' }, 'Update DFM - Wall Panels (3)': { progress: 'In Progress', hoursSpent: 31, dateSent: '' } } },
     ];
 
     // --- MAIN APP COMPONENT ---
@@ -146,19 +170,16 @@
       const [selectedJob, setSelectedJob] = useState(null);
       const [showManageStaffModal, setShowManageStaffModal] = useState(false);
 
-      // 1. Khởi tạo Auth
       useEffect(() => {
         if (!auth) {
-            setIsDataLoaded(true); // Không có firebase -> Cho vô dùng local luôn
+            setIsDataLoaded(true);
             return;
         }
-        
         signInAnonymously(auth).catch(err => console.error("Auth error", err));
         const unsubscribe = onAuthStateChanged(auth, setFirebaseUser);
         return () => unsubscribe();
       }, []);
 
-      // 2. Fetch Data
       useEffect(() => {
         if (!auth || !firebaseUser || !db) return;
 
@@ -166,24 +187,16 @@
         const unsubUsers = onSnapshot(usersRef, (snapshot) => {
           const loadedUsers = [];
           snapshot.forEach(doc => loadedUsers.push(doc.data()));
-
-          if (snapshot.empty) {
-            // Chỉ nạp dữ liệu mẫu 1 lần nếu database hoàn toàn trống
-            INITIAL_USERS.forEach(u => setDoc(doc(db, 'users', u.id), u));
-          } else {
-            setUsers(loadedUsers);
-          }
+          if (snapshot.empty) INITIAL_USERS.forEach(u => setDoc(doc(db, 'users', u.id), u));
+          else setUsers(loadedUsers);
         });
 
         const projectsRef = collection(db, 'projects');
         const unsubProjects = onSnapshot(projectsRef, (snapshot) => {
           const loadedProjects = [];
           snapshot.forEach(doc => loadedProjects.push(doc.data()));
-          
-          if (snapshot.empty) {
-            // Chỉ nạp dữ liệu mẫu 1 lần nếu database hoàn toàn trống
-            INITIAL_PROJECTS.forEach(p => setDoc(doc(db, 'projects', p.id), p));
-          } else {
+          if (snapshot.empty) INITIAL_PROJECTS.forEach(p => setDoc(doc(db, 'projects', p.id), p));
+          else {
             setProjects(loadedProjects);
             setIsDataLoaded(true);
           }
@@ -192,17 +205,12 @@
         return () => { unsubUsers(); unsubProjects(); };
       }, [firebaseUser]);
 
-      // --- FIREBASE CRUD HANDLERS ---
       const handleCreateStaff = async (e) => {
         e.preventDefault();
         if (!newStaffName.trim()) return;
         const newUser = { id: `s${Date.now()}`, name: newStaffName, role: 'Staff' };
-        
-        if (db) {
-            await setDoc(doc(db, 'users', newUser.id), newUser);
-        } else {
-            setUsers([...users, newUser]); // Chạy local
-        }
+        if (db) await setDoc(doc(db, 'users', newUser.id), newUser);
+        else setUsers([...users, newUser]);
         setNewStaffName('');
       };
 
@@ -210,20 +218,15 @@
         if (db) {
             const existing = users.find(u => u.id === userId);
             await setDoc(doc(db, 'users', userId), { ...existing, role: newRole });
-        } else {
-            setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
-        }
-        if (currentUser && currentUser.id === userId) {
-            setCurrentUser(prev => ({ ...prev, role: newRole }));
-        }
+        } else setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+        
+        if (currentUser && currentUser.id === userId) setCurrentUser(prev => ({ ...prev, role: newRole }));
       };
 
       const handleRemoveStaff = async (userId) => {
-        if (db) {
-            await deleteDoc(doc(db, 'users', userId));
-        } else {
-            setUsers(users.filter(u => u.id !== userId)); // Chạy local
-        }
+        if (db) await deleteDoc(doc(db, 'users', userId));
+        else setUsers(users.filter(u => u.id !== userId));
+        
         if (currentUser && currentUser.id === userId) {
           setCurrentUser(null);
           setSelectedUserId('');
@@ -235,18 +238,13 @@
         if (db) {
             const existing = projects.find(p => p.id === jobId);
             await setDoc(doc(db, 'projects', jobId), { ...existing, ...updatedData });
-        } else {
-            setProjects(projects.map(p => p.id === jobId ? { ...p, ...updatedData } : p)); // Chạy local
-        }
+        } else setProjects(projects.map(p => p.id === jobId ? { ...p, ...updatedData } : p));
         setSelectedJob(null);
       };
 
       const handleDeleteJob = async (jobId) => {
-        if (db) {
-            await deleteDoc(doc(db, 'projects', jobId));
-        } else {
-            setProjects(projects.filter(p => p.id !== jobId)); // Chạy local
-        }
+        if (db) await deleteDoc(doc(db, 'projects', jobId));
+        else setProjects(projects.filter(p => p.id !== jobId));
         setSelectedJob(null);
       };
 
@@ -254,16 +252,10 @@
         const user = users.find(u => u.id === selectedUserId);
         if (user) {
           setCurrentUser(user);
-          
-          // Cập nhật thời gian Last Login
           const now = new Date().toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
           const updatedUser = { ...user, lastLogin: now };
-          
-          if (db) {
-            await setDoc(doc(db, 'users', user.id), updatedUser);
-          } else {
-            setUsers(users.map(u => u.id === user.id ? updatedUser : u));
-          }
+          if (db) await setDoc(doc(db, 'users', user.id), updatedUser);
+          else setUsers(users.map(u => u.id === user.id ? updatedUser : u));
         }
       };
 
@@ -367,7 +359,7 @@
                   onClick={() => setShowManageStaffModal(true)}
                   className="flex items-center gap-2 text-white hover:bg-white/20 px-3 py-2 rounded-xl transition-colors text-sm font-semibold border border-transparent hover:border-white/20"
                 >
-                  <Users className="w-4 h-4" />
+                  <UsersIcon className="w-4 h-4" />
                   Manage Staff
                 </button>
                 <button 
@@ -415,7 +407,7 @@
               <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh] border border-gray-100">
                 <div className="px-6 py-5 border-b flex justify-between items-center bg-gradient-to-r from-slate-50 to-white">
                   <h2 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">
-                    <Users className="w-6 h-6 text-indigo-600" />
+                    <UsersIcon className="w-6 h-6 text-indigo-600" />
                     Manage Staff
                   </h2>
                   <button onClick={() => setShowManageStaffModal(false)} className="p-2 hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-full transition-colors">
@@ -500,7 +492,7 @@
       const [activeTab, setActiveTab] = useState('list');
       
       const [newJob, setNewJob] = useState({ 
-        jobName: '', ref: '', receivedDate: '', startedDate: '', ownerId: '', dueDate: '', buildingType: '', status: ['Medium Priority'] 
+        jobName: '', ref: '', receivedDate: '', startedDate: '', ownerId: '', dueDate: '', buildingType: '', status: [], priority: 'Medium' 
       });
 
       const handleCreateJob = async (e) => {
@@ -513,13 +505,10 @@
           phases: generateInitialPhases()
         };
         
-        if (db) {
-            await setDoc(doc(db, 'projects', project.id), project);
-        } else {
-            setProjects([...projects, project]); // Chạy local
-        }
+        if (db) await setDoc(doc(db, 'projects', project.id), project);
+        else setProjects([...projects, project]);
 
-        setNewJob({ jobName: '', ref: '', receivedDate: '', startedDate: '', ownerId: '', dueDate: '', buildingType: '', status: ['Medium Priority'] });
+        setNewJob({ jobName: '', ref: '', receivedDate: '', startedDate: '', ownerId: '', dueDate: '', buildingType: '', status: [], priority: 'Medium' });
         setActiveTab('list');
       };
 
@@ -532,6 +521,8 @@
 
         const excelData = projects.map(p => {
           const owner = users.find(u => u.id === p.ownerId)?.name || 'Unassigned';
+          const pPriority = extractPriority(p);
+          const pStatuses = extractStatuses(p);
 
           const preDesignHrs = parseFloat(p.phases['Pre-Design']?.hoursSpent || 0);
           const totalDfmHrs = ['DFM - Wall Panels', 'DFM - Floor Cassette', 'DFM - Roof Panels', 'DFM - Lookouts']
@@ -542,7 +533,8 @@
 
           const row = {
             'Job Name': p.jobName,
-            'Status': Array.isArray(p.status) ? p.status.join(', ') : (p.status || ''),
+            'Priority': pPriority,
+            'Status': pStatuses.join(', '),
             'Ref': p.ref || '',
             'Received Date': p.receivedDate || '',
             'Started Date': p.startedDate || '',
@@ -652,8 +644,15 @@
                       {BUILDING_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
                     </select>
                   </div>
+                  
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Priority</label>
+                    <select value={newJob.priority} onChange={e => setNewJob({...newJob, priority: e.target.value})} className="px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors font-semibold">
+                      {PRIORITIES.map(st => <option key={st} value={st}>{st}</option>)}
+                    </select>
+                  </div>
 
-                  <div className="flex flex-col gap-1 lg:col-span-2">
+                  <div className="flex flex-col gap-1 lg:col-span-3">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status (Max 3)</label>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {STATUSES.map(st => {
@@ -719,12 +718,14 @@
 
     function JobsTable({ projects, users, onJobClick }) {
       const [sortConfig, setSortConfig] = useState({ key: 'receivedDate', direction: 'asc' });
-      const [filters, setFilters] = useState({ status: '', ownerId: '', buildingType: '' });
+      const [filters, setFilters] = useState({ priority: '', status: '', ownerId: '', buildingType: '' });
 
       const sortedProjects = useMemo(() => {
         let filteredItems = projects.filter(p => {
+          if (filters.priority && extractPriority(p) !== filters.priority) return false;
+          
           if (filters.status) {
-            const arr = Array.isArray(p.status) ? p.status : (p.status ? [p.status] : []);
+            const arr = extractStatuses(p);
             if (!arr.includes(filters.status)) return false;
           }
           if (filters.ownerId && p.ownerId !== filters.ownerId) return false;
@@ -743,10 +744,16 @@
               bValue = users.find(u => u.id === bValue)?.name || '';
             }
 
+            if (sortConfig.key === 'priority') {
+              const pWeights = { 'High': 3, 'Medium': 2, 'Low': 1, 'None': 0 };
+              aValue = pWeights[extractPriority(a)] || 0;
+              bValue = pWeights[extractPriority(b)] || 0;
+            }
+
             if (sortConfig.key === 'status') {
-              const statusWeights = { 'High Priority': 8, 'In Process': 7, 'Medium Priority': 6, 'Low Priority': 5, 'Checking': 4, 'Awaiting Further Info': 3, 'On Hold': 2, 'Completed': 1 };
+              const statusWeights = { 'In Process': 7, 'Checking': 4, 'Awaiting Further Info': 3, 'On Hold': 2, 'Completed': 1 };
               const getWeight = (st) => {
-                  const arr = Array.isArray(st) ? st : (st ? [st] : []);
+                  const arr = extractStatuses(st);
                   if (arr.length === 0) return 0;
                   return Math.max(...arr.map(s => statusWeights[s] || 0));
               };
@@ -796,12 +803,12 @@
               <tr>
                 {[
                   { label: 'Job Name', key: 'jobName' },
+                  { label: 'Priority', key: 'priority', filterable: true, options: PRIORITIES.map(s => ({ value: s, label: s })) },
                   { label: 'Status', key: 'status', filterable: true, options: STATUSES.map(s => ({ value: s, label: s })) },
                   { label: 'Ref', key: 'ref' },
                   { label: 'Received Date', key: 'receivedDate' },
-                  { label: 'Started Date', key: 'startedDate' },
-                  { label: 'Owner', key: 'ownerId', filterable: true, options: staffUsers.map(u => ({ value: u.id, label: u.name })) },
                   { label: 'Due Date', key: 'dueDate' },
+                  { label: 'Owner', key: 'ownerId', filterable: true, options: staffUsers.map(u => ({ value: u.id, label: u.name })) },
                   { label: 'Building Type', key: 'buildingType', filterable: true, options: BUILDING_TYPES.map(t => ({ value: t, label: t })) },
                 ].map(col => (
                   <th 
@@ -820,7 +827,7 @@
                         <select
                           value={filters[col.key]}
                           onChange={(e) => setFilters(prev => ({ ...prev, [col.key]: e.target.value }))}
-                          className="w-full min-w-[100px] px-2 py-1.5 border border-slate-200 rounded-lg text-[10px] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                          className="w-full min-w-[90px] px-2 py-1.5 border border-slate-200 rounded-lg text-[10px] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                         >
                           <option value="">All</option>
                           {col.options.map(opt => (
@@ -846,7 +853,8 @@
               ) : sortedProjects.map(p => {
                 const owner = users.find(u => u.id === p.ownerId)?.name || 'Unassigned';
                 const ownerColorClass = getUserColor(p.ownerId);
-                const statusClass = STATUS_STYLES[p.status] || STATUS_STYLES['Low Priority'];
+                const pPriority = extractPriority(p);
+                const pStatuses = extractStatuses(p);
 
                 return (
                   <tr 
@@ -856,19 +864,27 @@
                     title="Click to view/edit phases"
                   >
                     <td className="px-5 py-3.5 font-bold text-indigo-700 group-hover:text-indigo-800">{p.jobName}</td>
+                    
+                    {/* Render Priority Icon */}
+                    <td className="px-5 py-3.5 text-center">
+                      {pPriority === 'High' && <PriorityHigh className="w-6 h-6 inline-block" title="High Priority" />}
+                      {pPriority === 'Medium' && <PriorityMedium className="w-6 h-6 inline-block" title="Medium Priority" />}
+                      {pPriority === 'Low' && <PriorityLow className="w-6 h-6 inline-block" title="Low Priority" />}
+                      {pPriority === 'None' && <span className="text-slate-300 font-bold">-</span>}
+                    </td>
+
                     <td className="px-5 py-3.5">
                       {(() => {
-                          const arr = Array.isArray(p.status) ? p.status : (p.status ? [p.status] : []);
-                          if (arr.length === 0) return <span className="text-slate-400 text-xs font-semibold">-</span>;
-                          const normalStatuses = arr.filter(st => st !== 'Awaiting Further Info');
-                          const hasAwaiting = arr.includes('Awaiting Further Info');
+                          if (pStatuses.length === 0) return <span className="text-slate-400 text-xs font-semibold">-</span>;
+                          const normalStatuses = pStatuses.filter(st => st !== 'Awaiting Further Info');
+                          const hasAwaiting = pStatuses.includes('Awaiting Further Info');
                           
                           return (
                             <div className="flex flex-col gap-1 items-start">
                               {normalStatuses.length > 0 && (
                                 <div className="flex gap-1">
                                   {normalStatuses.map(st => (
-                                    <span key={st} className={`whitespace-nowrap px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold border ${STATUS_STYLES[st] || STATUS_STYLES['Low Priority']}`}>
+                                    <span key={st} className={`whitespace-nowrap px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold border ${STATUS_STYLES[st] || 'bg-white border-slate-200'}`}>
                                       {st}
                                     </span>
                                   ))}
@@ -885,11 +901,10 @@
                     </td>
                     <td className="px-5 py-3.5 text-slate-600 font-mono text-xs">{p.ref || '-'}</td>
                     <td className="px-5 py-3.5 text-slate-600">{p.receivedDate || '-'}</td>
-                    <td className="px-5 py-3.5 text-slate-600">{p.startedDate || '-'}</td>
+                    <td className="px-5 py-3.5 text-slate-600 font-medium">{p.dueDate || '-'}</td>
                     <td className={`px-5 py-3.5 font-extrabold ${ownerColorClass}`}>
                       <span className="bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100 shadow-sm">{owner}</span>
                     </td>
-                    <td className="px-5 py-3.5 text-slate-600 font-medium">{p.dueDate || '-'}</td>
                     <td className="px-5 py-3.5">
                       {p.buildingType ? (
                         <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
@@ -910,7 +925,8 @@
       const [phasesForm, setPhasesForm] = useState({ ...job.phases });
       const [jobInfoForm, setJobInfoForm] = useState({
         jobName: job.jobName || '',
-        status: Array.isArray(job.status) ? job.status : (job.status ? [job.status] : []),
+        status: extractStatuses(job),
+        priority: extractPriority(job),
         ref: job.ref || '',
         ownerId: job.ownerId || '',
         startedDate: job.startedDate || ''
@@ -919,6 +935,7 @@
       const [errorMsg, setErrorMsg] = useState('');
       const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
       const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+      const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
       
       const isEditable = currentUser.role === 'Manager' || job.ownerId === currentUser.id;
 
@@ -1007,7 +1024,6 @@
         const basePhases = PHASES.filter(p => keys.includes(p));
         
         const optionalPhases = keys.filter(p => !PHASES.includes(p)).sort((a, b) => {
-          // Tách tên gốc và số thứ tự (nếu có) để sắp xếp đúng thời gian tạo
           const getBaseAndNum = (name) => {
             const match = name.match(/^(.*?)(?:\s\((\d+)\))?$/);
             return { base: match ? match[1] : name, num: match && match[2] ? parseInt(match[2], 10) : 1 };
@@ -1018,8 +1034,8 @@
           const aIndex = OPTIONAL_PHASES.indexOf(aParsed.base);
           const bIndex = OPTIONAL_PHASES.indexOf(bParsed.base);
           
-          if (aIndex === bIndex) return aParsed.num - bParsed.num; // Cùng loại -> xếp theo số thứ tự (1, 2, 3)
-          return aIndex - bIndex; // Khác loại -> xếp theo thứ tự chuẩn của OPTIONAL_PHASES
+          if (aIndex === bIndex) return aParsed.num - bParsed.num;
+          return aIndex - bIndex;
         });
 
         return [...basePhases, ...optionalPhases];
@@ -1048,6 +1064,38 @@
             <div className="px-6 py-5 border-b flex justify-between items-start bg-gradient-to-r from-indigo-50 to-white">
               <div className="flex-1 pr-4">
                 <div className="flex items-center gap-3">
+                  {/* Biểu tượng Priority kèm Menu thả xuống */}
+                  <div className="relative">
+                    <button 
+                      onClick={() => isEditable && setShowPriorityDropdown(!showPriorityDropdown)} 
+                      className={`flex items-center justify-center transition-transform outline-none ${isEditable ? 'cursor-pointer hover:scale-110' : 'cursor-default'}`}
+                      title={isEditable ? "Click to change Priority" : "Priority"}
+                    >
+                      {jobInfoForm.priority === 'High' && <PriorityHigh className="w-8 h-8 drop-shadow-sm" />}
+                      {jobInfoForm.priority === 'Medium' && <PriorityMedium className="w-8 h-8 drop-shadow-sm" />}
+                      {jobInfoForm.priority === 'Low' && <PriorityLow className="w-8 h-8 drop-shadow-sm" />}
+                      {(jobInfoForm.priority === 'None' || !jobInfoForm.priority) && <div className="w-7 h-7 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-300 text-xs font-bold bg-white">-</div>}
+                    </button>
+
+                    {showPriorityDropdown && isEditable && (
+                      <div className="absolute top-full left-0 mt-2 w-40 bg-white border border-slate-200 shadow-xl rounded-xl z-50 p-2 flex flex-col gap-1">
+                        {PRIORITIES.map(p => (
+                          <button
+                            key={p}
+                            onClick={() => { handleInfoChange('priority', p); setShowPriorityDropdown(false); }}
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors text-left text-sm font-semibold text-slate-700"
+                          >
+                            {p === 'High' && <PriorityHigh className="w-5 h-5" />}
+                            {p === 'Medium' && <PriorityMedium className="w-5 h-5" />}
+                            {p === 'Low' && <PriorityLow className="w-5 h-5" />}
+                            {p === 'None' && <span className="w-5 h-5 flex items-center justify-center text-slate-400 font-bold">-</span>}
+                            <span>{p}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   {isEditable ? (
                     <input 
                       type="text" 
@@ -1059,6 +1107,7 @@
                   ) : (
                     <h2 className="text-2xl font-extrabold text-indigo-900 px-2 py-0.5">{jobInfoForm.jobName}</h2>
                   )}
+
                   <div className="relative flex items-center gap-2">
                     {(() => {
                         if (currentStatuses.length === 0) return (
@@ -1074,7 +1123,7 @@
                             {normalStatuses.length > 0 && (
                               <div className="flex gap-1">
                                 {normalStatuses.map(st => (
-                                  <span key={st} className={`whitespace-nowrap px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold border ${STATUS_STYLES[st] || STATUS_STYLES['Low Priority']}`}>
+                                  <span key={st} className={`whitespace-nowrap px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold border ${STATUS_STYLES[st] || 'bg-white border-slate-200'}`}>
                                     {st}
                                   </span>
                                 ))}
@@ -1114,7 +1163,7 @@
                                                   }} 
                                                   className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4" 
                                                 />
-                                                <span className={`px-2 py-0.5 rounded text-[10px] border ${STATUS_STYLES[st]}`}>{st}</span>
+                                                <span className={`px-2 py-0.5 rounded text-[10px] border ${STATUS_STYLES[st] || 'border-slate-200'}`}>{st}</span>
                                             </label>
                                         )
                                     })}
