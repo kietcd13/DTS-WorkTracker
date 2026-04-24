@@ -158,6 +158,7 @@
       { id: 'u3', name: 'Kiet Bui', role: 'Staff' },
       { id: 'u4', name: 'Thuan Nguyen', role: 'Staff' },
       { id: 'u5', name: 'Bach Le', role: 'Staff' },
+      { id: 'c1', name: 'Alan Hennis', role: 'Customer' },
     ];
 
     const INITIAL_PROJECTS = [
@@ -195,9 +196,24 @@
         const usersRef = collection(db, 'users');
         const unsubUsers = onSnapshot(usersRef, (snapshot) => {
           const loadedUsers = [];
-          snapshot.forEach(doc => loadedUsers.push(doc.data()));
-          if (snapshot.empty) INITIAL_USERS.forEach(u => setDoc(doc(db, 'users', u.id), u));
-          else setUsers(loadedUsers);
+          let hasAlan = false;
+          
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            loadedUsers.push(data);
+            if (data.id === 'c1' || data.name === 'Alan Hennis') hasAlan = true;
+          });
+
+          if (snapshot.empty) {
+            INITIAL_USERS.forEach(u => setDoc(doc(db, 'users', u.id), u));
+          } else {
+            // Tự động đẩy Alan Hennis vào database nếu chưa có
+            if (!hasAlan) {
+              const alan = { id: 'c1', name: 'Alan Hennis', role: 'Customer' };
+              setDoc(doc(db, 'users', 'c1'), alan);
+            }
+            setUsers(loadedUsers);
+          }
         });
 
         const projectsRef = collection(db, 'projects');
@@ -312,6 +328,11 @@
                         <option key={u.id} value={u.id}>{u.name}</option>
                       ))}
                     </optgroup>
+                    <optgroup label="Customer">
+                      {users.filter(u => u.role === 'Customer').map(u => (
+                        <option key={u.id} value={u.id}>{u.name}</option>
+                      ))}
+                    </optgroup>
                   </select>
                 </div>
                 <button 
@@ -359,18 +380,20 @@
               <div className="text-sm bg-black/20 px-4 py-1.5 rounded-full flex items-center gap-2 backdrop-blur-sm border border-white/10">
                 <span className="text-indigo-100">User:</span>
                 <span className="font-bold">{currentUser.name}</span>
-                <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-bold ${currentUser.role === 'Manager' ? 'bg-fuchsia-500 text-white' : 'bg-emerald-400 text-emerald-950'}`}>
+                <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-bold ${currentUser.role === 'Manager' ? 'bg-fuchsia-500 text-white' : currentUser.role === 'Customer' ? 'bg-blue-500 text-white' : 'bg-emerald-400 text-emerald-950'}`}>
                   {currentUser.role}
                 </span>
               </div>
               <div className="flex gap-2">
-                <button 
-                  onClick={() => setShowManageStaffModal(true)}
-                  className="flex items-center gap-2 text-white hover:bg-white/20 px-3 py-2 rounded-xl transition-colors text-sm font-semibold border border-transparent hover:border-white/20"
-                >
-                  <UsersIcon className="w-4 h-4" />
-                  Manage Staff
-                </button>
+                {currentUser.role === 'Manager' && (
+                  <button 
+                    onClick={() => setShowManageStaffModal(true)}
+                    className="flex items-center gap-2 text-white hover:bg-white/20 px-3 py-2 rounded-xl transition-colors text-sm font-semibold border border-transparent hover:border-white/20"
+                  >
+                    <UsersIcon className="w-4 h-4" />
+                    Manage Staff
+                  </button>
+                )}
                 <button 
                   onClick={() => {setCurrentUser(null); setSelectedUserId('');}}
                   className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-xl transition-colors text-sm font-semibold shadow-sm"
@@ -383,8 +406,9 @@
           </header>
 
           <main className="flex-1 max-w-7xl w-full mx-auto p-6">
-            {currentUser.role === 'Manager' ? (
+            {currentUser.role === 'Manager' || currentUser.role === 'Customer' ? (
               <ManagerDashboard 
+                currentUser={currentUser}
                 users={users} 
                 projects={projects}
                 setProjects={setProjects}
@@ -469,10 +493,11 @@
                                 <select
                                   value={user.role}
                                   onChange={(e) => handleUpdateRole(user.id, e.target.value)}
-                                  className={`text-xs font-bold px-2 py-1 border rounded outline-none focus:ring-1 focus:ring-indigo-500 ${user.role === 'Manager' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}
+                                  className={`text-xs font-bold px-2 py-1 border rounded outline-none focus:ring-1 focus:ring-indigo-500 ${user.role === 'Manager' ? 'bg-purple-50 text-purple-700 border-purple-200' : user.role === 'Customer' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}
                                 >
                                   <option value="Staff">Staff</option>
                                   <option value="Manager">Manager</option>
+                                  <option value="Customer">Customer</option>
                                 </select>
                                 <button 
                                   onClick={() => handleRemoveStaff(user.id)}
@@ -497,7 +522,7 @@
     }
 
     // --- MANAGER DASHBOARD ---
-    function ManagerDashboard({ users, projects, setProjects, db, onJobClick }) {
+    function ManagerDashboard({ currentUser, users, projects, setProjects, db, onJobClick }) {
       const [activeTab, setActiveTab] = useState('list');
       
       const [newJob, setNewJob] = useState({ 
@@ -585,13 +610,15 @@
                 <ListTodo className="w-5 h-5" />
                 Job List
               </button>
-              <button 
-                onClick={() => setActiveTab('add')}
-                className={`px-6 py-5 flex items-center gap-2 font-bold transition-all border-b-2 ${activeTab === 'add' ? 'border-indigo-600 text-indigo-700 bg-white' : 'border-transparent text-slate-500 hover:bg-slate-100'}`}
-              >
-                <FilePlus className="w-5 h-5" />
-                Add New Job
-              </button>
+              {currentUser.role !== 'Customer' && (
+                <button 
+                  onClick={() => setActiveTab('add')}
+                  className={`px-6 py-5 flex items-center gap-2 font-bold transition-all border-b-2 ${activeTab === 'add' ? 'border-indigo-600 text-indigo-700 bg-white' : 'border-transparent text-slate-500 hover:bg-slate-100'}`}
+                >
+                  <FilePlus className="w-5 h-5" />
+                  Add New Job
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-4">
               <div className="text-sm font-bold text-slate-400">Total Jobs: {projects.length}</div>
@@ -946,7 +973,7 @@
       const [showStatusDropdown, setShowStatusDropdown] = useState(false);
       const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
       
-      const isEditable = currentUser.role === 'Manager' || job.ownerId === currentUser.id;
+      const isEditable = currentUser.role !== 'Customer' && (currentUser.role === 'Manager' || job.ownerId === currentUser.id);
 
       useEffect(() => {
         const phases = Object.values(phasesForm);
