@@ -1478,7 +1478,7 @@
 
             {activeTab === 'stats' && (
 
-              <StatisticsView projects={projects} />
+              <StatisticsView projects={projects} users={users} />
 
             )}
 
@@ -1492,18 +1492,18 @@
 
 
 
-    function StatisticsView({ projects }) {
+    function StatisticsView({ projects, users }) {
 
-      const [viewMode, setViewMode] = useState('count'); // 'count' or 'average'
+      const [viewMode, setViewMode] = useState('count'); // 'count', 'average', 'total'
       const [buildingFilter, setBuildingFilter] = useState('Overall');
+      const [reportType, setReportType] = useState('task-type');
 
       const statsData = useMemo(() => {
 
         const stats = {};
 
         const allMonths = new Set();
-
-        const categories = ['Pre-Design', 'Wall Panels', 'Floor Cassette', 'Roof Panels', 'Lookouts', 'Update', 'Correction', 'Variation'];
+        const rowKeysSet = new Set();
 
         const filteredProjects = buildingFilter === 'Overall' 
             ? projects 
@@ -1512,17 +1512,13 @@
         filteredProjects.forEach(p => {
 
           const isVariationJob = p.jobName.toLowerCase().includes('variation');
+          const designerName = users.find(u => u.id === p.ownerId)?.name || 'Unassigned';
 
           Object.entries(p.phases || {}).forEach(([phaseName, phaseData]) => {
 
             if (phaseData.dateSent) {
               const month = phaseData.dateSent.substring(0, 7);
               allMonths.add(month);
-
-              if (!stats[month]) {
-                stats[month] = {};
-                categories.forEach(c => stats[month][c] = { count: 0, hours: 0 });
-              }
 
               let category = null;
               if (isVariationJob) {
@@ -1539,18 +1535,44 @@
               }
 
               if (category) {
-                stats[month][category].count += 1;
-                stats[month][category].hours += parseFloat(phaseData.hoursSpent || 0);
+                let rowKey = '';
+                if (reportType === 'task-type') rowKey = category;
+                else if (reportType === 'designer') rowKey = designerName;
+                else if (reportType === 'designer-task') rowKey = `${designerName} - ${category}`;
+
+                rowKeysSet.add(rowKey);
+
+                if (!stats[month]) stats[month] = {};
+                if (!stats[month][rowKey]) stats[month][rowKey] = { count: 0, hours: 0 };
+
+                stats[month][rowKey].count += 1;
+                stats[month][rowKey].hours += parseFloat(phaseData.hoursSpent || 0);
               }
             }
           });
         });
 
         const sortedMonths = Array.from(allMonths).sort();
-        return { stats, sortedMonths, categories };
-      }, [projects, buildingFilter]);
+        let rowKeys = Array.from(rowKeysSet).sort();
 
-      const { stats, sortedMonths, categories } = statsData;
+        // Đảm bảo tạo dữ liệu rỗng cho tất cả ô để tránh lỗi undefined
+        sortedMonths.forEach(m => {
+          rowKeys.forEach(rk => {
+            if (!stats[m][rk]) stats[m][rk] = { count: 0, hours: 0 };
+          });
+        });
+
+        if (reportType === 'task-type') {
+          const predefinedOrder = ['Pre-Design', 'Wall Panels', 'Floor Cassette', 'Roof Panels', 'Lookouts', 'Update', 'Correction', 'Variation'];
+          const finalRowKeys = predefinedOrder.filter(c => rowKeysSet.has(c));
+          rowKeys.forEach(c => { if (!predefinedOrder.includes(c)) finalRowKeys.push(c); });
+          rowKeys = finalRowKeys;
+        }
+
+        return { stats, sortedMonths, rowKeys };
+      }, [projects, buildingFilter, reportType, users]);
+
+      const { stats, sortedMonths, rowKeys } = statsData;
 
       const formatMonth = (monthString) => {
         if (!monthString) return '';
@@ -1561,19 +1583,37 @@
         return monthString;
       };
 
+      const formatValue = (count, hours, mode) => {
+        if (count === 0) return '-';
+        if (mode === 'count') return count;
+        if (mode === 'total') return Number.isInteger(hours) ? hours : hours.toFixed(1);
+        const avg = hours / count;
+        return Number.isInteger(avg) ? avg : avg.toFixed(1);
+      };
+
       return (
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 max-w-5xl mx-auto">
-          <div className="flex justify-between items-center mb-6 border-b pb-4">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 max-w-6xl mx-auto">
+          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 border-b pb-4">
             <h3 className="text-lg font-extrabold text-slate-800 flex items-center gap-2">
               <BarChart2 className="w-5 h-5 text-indigo-500" />
               Completed Tasks Statistics
             </h3>
             
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <select 
+                value={reportType}
+                onChange={e => setReportType(e.target.value)}
+                className="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-medium bg-white shadow-sm"
+              >
+                <option value="task-type">By Task Type</option>
+                <option value="designer">By Designer</option>
+                <option value="designer-task">By Designer & Task</option>
+              </select>
+
               <select 
                 value={buildingFilter}
                 onChange={e => setBuildingFilter(e.target.value)}
-                className="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-medium bg-white"
+                className="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-medium bg-white shadow-sm"
               >
                 <option value="Overall">Overall</option>
                 {BUILDING_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
@@ -1582,15 +1622,21 @@
               <div className="flex gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
                 <button 
                   onClick={() => setViewMode('count')}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'count' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${viewMode === 'count' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                   Task Count
                 </button>
                 <button 
                   onClick={() => setViewMode('average')}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'average' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${viewMode === 'average' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                 >
-                  Average Actual Hour
+                  Average Hours
+                </button>
+                <button 
+                  onClick={() => setViewMode('total')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${viewMode === 'total' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  Total Hours
                 </button>
               </div>
             </div>
@@ -1603,7 +1649,9 @@
               <table className="w-full text-sm text-left border border-slate-200 rounded-lg overflow-hidden">
                 <thead className="text-[11px] text-slate-500 uppercase tracking-wider bg-slate-50 border-b border-slate-200 font-bold">
                   <tr>
-                    <th className="px-5 py-4 border-r border-slate-200 bg-white sticky left-0 z-10 w-48">Task Type</th>
+                    <th className="px-5 py-4 border-r border-slate-200 bg-white sticky left-0 z-10 min-w-[200px]">
+                      {reportType === 'task-type' ? 'Task Type' : reportType === 'designer' ? 'Designer' : 'Designer & Task'}
+                    </th>
                     {sortedMonths.map(m => (
                       <th key={m} className="px-5 py-4 text-center border-r border-slate-200">{formatMonth(m)}</th>
                     ))}
@@ -1611,27 +1659,25 @@
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {categories.map(cat => {
+                  {rowKeys.map(rk => {
                     let rowCount = 0;
                     let rowHours = 0;
                     return (
-                      <tr key={cat} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-5 py-3 font-bold text-slate-700 border-r border-slate-200 bg-white sticky left-0 z-10">{cat}</td>
+                      <tr key={rk} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-5 py-3 font-bold text-slate-700 border-r border-slate-200 bg-white sticky left-0 z-10">{rk}</td>
                         {sortedMonths.map(m => {
-                          const cellData = stats[m][cat];
+                          const cellData = stats[m][rk];
                           rowCount += cellData.count;
                           rowHours += cellData.hours;
                           
-                          const displayVal = cellData.count === 0 ? '-' : (viewMode === 'count' ? cellData.count : (cellData.hours / cellData.count).toFixed(1));
-                          
                           return (
                             <td key={m} className="px-5 py-3 text-center border-r border-slate-200 text-slate-600 font-medium">
-                              {displayVal}
+                              {formatValue(cellData.count, cellData.hours, viewMode)}
                             </td>
                           );
                         })}
                         <td className="px-5 py-3 text-center font-bold text-indigo-700 bg-indigo-50/30">
-                          {rowCount === 0 ? '-' : (viewMode === 'count' ? rowCount : (rowHours / rowCount).toFixed(1))}
+                          {formatValue(rowCount, rowHours, viewMode)}
                         </td>
                       </tr>
                     );
@@ -1642,16 +1688,14 @@
                     {sortedMonths.map(m => {
                       let colCount = 0;
                       let colHours = 0;
-                      categories.forEach(cat => {
-                        colCount += stats[m][cat].count;
-                        colHours += stats[m][cat].hours;
+                      rowKeys.forEach(rk => {
+                        colCount += stats[m][rk].count;
+                        colHours += stats[m][rk].hours;
                       });
-                      
-                      const displayVal = colCount === 0 ? '-' : (viewMode === 'count' ? colCount : (colHours / colCount).toFixed(1));
                       
                       return (
                         <td key={m} className="px-5 py-4 text-center border-r border-slate-200 text-indigo-700">
-                          {displayVal}
+                          {formatValue(colCount, colHours, viewMode)}
                         </td>
                       );
                     })}
@@ -1659,13 +1703,13 @@
                       {(() => {
                         let grandCount = 0;
                         let grandHours = 0;
-                        categories.forEach(cat => {
+                        rowKeys.forEach(rk => {
                           sortedMonths.forEach(m => {
-                            grandCount += stats[m][cat].count;
-                            grandHours += stats[m][cat].hours;
+                            grandCount += stats[m][rk].count;
+                            grandHours += stats[m][rk].hours;
                           });
                         });
-                        return grandCount === 0 ? '-' : (viewMode === 'count' ? grandCount : (grandHours / grandCount).toFixed(1));
+                        return formatValue(grandCount, grandHours, viewMode);
                       })()}
                     </td>
                   </tr>
