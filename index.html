@@ -952,8 +952,17 @@
       );
     }
 
+    const EXPECTED_HOURS = {
+      'Pre-Design': { 'Bungalow': 5.5, '2-Storey': 7, '2.5-Storey': 9 },
+      'Wall Panels': { 'Bungalow': 4.6, '2-Storey': 8, '2.5-Storey': 12 },
+      'Floor Cassette': { 'Bungalow': 0, '2-Storey': 7, '2.5-Storey': 10 },
+      'Roof Panels': { 'Bungalow': 3.3, '2-Storey': 4, '2.5-Storey': 6 },
+      'Lookouts': { 'Bungalow': 3.4, '2-Storey': 4, '2.5-Storey': 6 },
+      'Variation': { 'Bungalow': 8.25, '2-Storey': 12.75, '2.5-Storey': 19.25 }
+    };
+
     function StatisticsView({ projects, users }) {
-      const [viewMode, setViewMode] = useState('count'); // 'count', 'average', 'total'
+      const [viewMode, setViewMode] = useState('count'); // 'count', 'average', 'total', 'productivity'
       const [buildingFilter, setBuildingFilter] = useState('Overall');
       const [reportType, setReportType] = useState('task-type');
 
@@ -998,12 +1007,20 @@
                 rowKeysSet.add(rowKey);
 
                 if (!stats[month]) stats[month] = {};
-                if (!stats[month][rowKey]) stats[month][rowKey] = { count: 0, hours: 0, jobs: [] };
+                if (!stats[month][rowKey]) stats[month][rowKey] = { count: 0, hours: 0, expectedHours: 0, addedExpected: new Set(), jobs: [] };
 
                 stats[month][rowKey].count += 1;
                 stats[month][rowKey].hours += parseFloat(phaseData.hoursSpent || 0);
                 if (!stats[month][rowKey].jobs.includes(p.jobName)) {
                     stats[month][rowKey].jobs.push(p.jobName);
+                }
+
+                // Lưu số giờ expected chỉ một lần mỗi job/category để tránh bị nhân đôi (khi job có nhiều phase Update cùng loại)
+                const expKey = `${p.id}-${category}`;
+                if (!stats[month][rowKey].addedExpected.has(expKey)) {
+                  const expHrs = EXPECTED_HOURS[category]?.[p.buildingType] || 0;
+                  stats[month][rowKey].expectedHours += expHrs;
+                  stats[month][rowKey].addedExpected.add(expKey);
                 }
               }
             }
@@ -1011,20 +1028,44 @@
         });
 
         const sortedMonths = Array.from(allMonths).sort();
-        let rowKeys = Array.from(rowKeysSet).sort();
+        let rowKeys = Array.from(rowKeysSet);
+
+        const predefinedOrder = ['Pre-Design', 'Wall Panels', 'Floor Cassette', 'Roof Panels', 'Lookouts', 'Variation', 'Update', 'Correction'];
+
+        rowKeys.sort((a, b) => {
+          if (reportType === 'task-type') {
+            let indexA = predefinedOrder.indexOf(a);
+            let indexB = predefinedOrder.indexOf(b);
+            if (indexA === -1) indexA = 999;
+            if (indexB === -1) indexB = 999;
+            if (indexA !== indexB) return indexA - indexB;
+            return a.localeCompare(b);
+          } else if (reportType === 'designer-task') {
+            const partsA = a.split(' - ');
+            const partsB = b.split(' - ');
+            const designerA = partsA[0];
+            const taskA = partsA[1] || '';
+            const designerB = partsB[0];
+            const taskB = partsB[1] || '';
+
+            if (designerA !== designerB) return designerA.localeCompare(designerB);
+
+            let indexA = predefinedOrder.indexOf(taskA);
+            let indexB = predefinedOrder.indexOf(taskB);
+            if (indexA === -1) indexA = 999;
+            if (indexB === -1) indexB = 999;
+            if (indexA !== indexB) return indexA - indexB;
+            return taskA.localeCompare(taskB);
+          } else {
+            return a.localeCompare(b);
+          }
+        });
 
         sortedMonths.forEach(m => {
           rowKeys.forEach(rk => {
-            if (!stats[m][rk]) stats[m][rk] = { count: 0, hours: 0, jobs: [] };
+            if (!stats[m][rk]) stats[m][rk] = { count: 0, hours: 0, expectedHours: 0, addedExpected: new Set(), jobs: [] };
           });
         });
-
-        if (reportType === 'task-type') {
-          const predefinedOrder = ['Pre-Design', 'Wall Panels', 'Floor Cassette', 'Roof Panels', 'Lookouts', 'Update', 'Correction', 'Variation'];
-          const finalRowKeys = predefinedOrder.filter(c => rowKeysSet.has(c));
-          rowKeys.forEach(c => { if (!predefinedOrder.includes(c)) finalRowKeys.push(c); });
-          rowKeys = finalRowKeys;
-        }
 
         return { stats, sortedMonths, rowKeys };
       }, [projects, buildingFilter, reportType, users]);
@@ -1040,12 +1081,20 @@
         return monthString;
       };
 
-      const formatValue = (count, hours, mode) => {
+      const formatValue = (count, hours, expected, mode) => {
         if (count === 0) return '-';
         if (mode === 'count') return count;
         if (mode === 'total') return Number.isInteger(hours) ? hours : hours.toFixed(1);
-        const avg = hours / count;
-        return Number.isInteger(avg) ? avg : avg.toFixed(1);
+        if (mode === 'average') {
+            const avg = hours / count;
+            return Number.isInteger(avg) ? avg : avg.toFixed(1);
+        }
+        if (mode === 'productivity') {
+            if (!expected || expected === 0 || hours === 0) return '-'; // Bỏ qua nếu expected hoặc hours bằng 0
+            const prod = (expected / hours) * 100; // Công thức: Expected / Thực tế
+            return prod.toFixed(1) + '%';
+        }
+        return '-';
       };
 
       return (
@@ -1095,6 +1144,12 @@
                 >
                   Total Hours
                 </button>
+                <button 
+                  onClick={() => setViewMode('productivity')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${viewMode === 'productivity' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  Productivity (%)
+                </button>
               </div>
             </div>
           </div>
@@ -1119,6 +1174,7 @@
                   {rowKeys.map(rk => {
                     let rowCount = 0;
                     let rowHours = 0;
+                    let rowExpected = 0;
                     return (
                       <tr key={rk} className="hover:bg-slate-50 transition-colors">
                         <td className="px-5 py-3 font-bold text-slate-700 border-r border-slate-200 bg-white sticky left-0 z-10">{rk}</td>
@@ -1126,6 +1182,7 @@
                           const cellData = stats[m][rk];
                           rowCount += cellData.count;
                           rowHours += cellData.hours;
+                          rowExpected += cellData.expectedHours;
                           
                           return (
                             <td 
@@ -1133,12 +1190,12 @@
                               className={`px-5 py-3 text-center border-r border-slate-200 font-medium ${cellData.count > 0 ? 'text-indigo-600 cursor-help hover:bg-indigo-50' : 'text-slate-600'}`}
                               title={cellData.jobs && cellData.jobs.length > 0 ? "Included Jobs:\n" + cellData.jobs.join('\n') : ''}
                             >
-                              {formatValue(cellData.count, cellData.hours, viewMode)}
+                              {formatValue(cellData.count, cellData.hours, cellData.expectedHours, viewMode)}
                             </td>
                           );
                         })}
                         <td className="px-5 py-3 text-center font-bold text-indigo-700 bg-indigo-50/30">
-                          {formatValue(rowCount, rowHours, viewMode)}
+                          {formatValue(rowCount, rowHours, rowExpected, viewMode)}
                         </td>
                       </tr>
                     );
@@ -1149,14 +1206,16 @@
                     {sortedMonths.map(m => {
                       let colCount = 0;
                       let colHours = 0;
+                      let colExpected = 0;
                       rowKeys.forEach(rk => {
                         colCount += stats[m][rk].count;
                         colHours += stats[m][rk].hours;
+                        colExpected += stats[m][rk].expectedHours;
                       });
                       
                       return (
                         <td key={m} className="px-5 py-4 text-center border-r border-slate-200 text-indigo-700">
-                          {formatValue(colCount, colHours, viewMode)}
+                          {formatValue(colCount, colHours, colExpected, viewMode)}
                         </td>
                       );
                     })}
@@ -1164,13 +1223,15 @@
                       {(() => {
                         let grandCount = 0;
                         let grandHours = 0;
+                        let grandExpected = 0;
                         rowKeys.forEach(rk => {
                           sortedMonths.forEach(m => {
                             grandCount += stats[m][rk].count;
                             grandHours += stats[m][rk].hours;
+                            grandExpected += stats[m][rk].expectedHours;
                           });
                         });
-                        return formatValue(grandCount, grandHours, viewMode);
+                        return formatValue(grandCount, grandHours, grandExpected, viewMode);
                       })()}
                     </td>
                   </tr>
