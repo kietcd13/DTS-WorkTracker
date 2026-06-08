@@ -93,6 +93,7 @@
     const BarChart2 = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>;
     const Clock = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
     const Activity = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>;
+    const MapPin = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>;
 
     // PRIORITY ICONS
     const PriorityLow = ({className}) => (
@@ -147,6 +148,15 @@
       'text-amber-600', 'text-cyan-600', 'text-fuchsia-600',
       'text-blue-600', 'text-orange-600'
     ];
+
+    const EXPECTED_HOURS = {
+      'Pre-Design': { 'Bungalow': 5.5, '2-Storey': 7, '2.5-Storey': 9 },
+      'Wall Panels': { 'Bungalow': 4.6, '2-Storey': 8, '2.5-Storey': 12 },
+      'Floor Cassette': { 'Bungalow': 0, '2-Storey': 7, '2.5-Storey': 10 },
+      'Roof Panels': { 'Bungalow': 3.3, '2-Storey': 4, '2.5-Storey': 6 },
+      'Lookouts': { 'Bungalow': 3.4, '2-Storey': 4, '2.5-Storey': 6 },
+      'Variation': { 'Bungalow': 8.25, '2-Storey': 12.75, '2.5-Storey': 19.25 }
+    };
 
     const generateInitialPhases = () => {
       const phases = {};
@@ -291,6 +301,8 @@
 
       const [selectedJob, setSelectedJob] = useState(null);
       const [showManageStaffModal, setShowManageStaffModal] = useState(false);
+      const [showManageSitesModal, setShowManageSitesModal] = useState(false);
+      const [siteToDelete, setSiteToDelete] = useState(null);
 
       const existingSites = useMemo(() => {
         const sites = new Set(projects.map(p => p.siteName).filter(Boolean));
@@ -386,6 +398,10 @@
       const handleSaveJobDetails = async (jobId, updatedData) => {
         const existing = projects.find(p => p.id === jobId);
 
+        const originalSiteName = existing?.siteName;
+        const newSiteName = updatedData.siteName;
+        const siteNameChanged = originalSiteName && originalSiteName.trim() !== '' && newSiteName && originalSiteName !== newSiteName;
+
         // Diffing phases for hours changes
         const newLogs = [];
         if (existing && updatedData.phases) {
@@ -409,13 +425,30 @@
           });
         }
 
+        let nextProjects = projects.map(p => {
+          if (p.id === jobId) return { ...p, ...updatedData };
+          if (siteNameChanged && p.siteName === originalSiteName) return { ...p, siteName: newSiteName };
+          return p;
+        });
+
         if (db) {
-            await setDoc(doc(db, 'projects', jobId), { ...existing, ...updatedData });
+            const jobsToUpdate = [{ id: jobId, data: { ...existing, ...updatedData } }];
+            if (siteNameChanged) {
+              projects.forEach(p => {
+                if (p.id !== jobId && p.siteName === originalSiteName) {
+                  jobsToUpdate.push({ id: p.id, data: { ...p, siteName: newSiteName } });
+                }
+              });
+            }
+            
+            for (const item of jobsToUpdate) {
+               await setDoc(doc(db, 'projects', item.id), item.data);
+            }
             for (const log of newLogs) {
                await setDoc(doc(db, 'history', log.id), log);
             }
         } else {
-            setProjects(projects.map(p => p.id === jobId ? { ...p, ...updatedData } : p));
+            setProjects(nextProjects);
             setHistoryLogs(prev => [...newLogs, ...prev].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
         }
 
@@ -541,13 +574,22 @@
               </div>
               <div className="flex gap-2">
                 {currentUser.role === 'Manager' && (
-                  <button 
-                    onClick={() => setShowManageStaffModal(true)}
-                    className="flex items-center gap-2 text-white hover:bg-white/20 px-3 py-2 rounded-xl transition-colors text-sm font-semibold border border-transparent hover:border-white/20"
-                  >
-                    <UsersIcon className="w-4 h-4" />
-                    Manage Staff
-                  </button>
+                  <>
+                    <button 
+                      onClick={() => setShowManageSitesModal(true)}
+                      className="flex items-center gap-2 text-white hover:bg-white/20 px-3 py-2 rounded-xl transition-colors text-sm font-semibold border border-transparent hover:border-white/20"
+                    >
+                      <MapPin className="w-4 h-4" />
+                      Manage Sites
+                    </button>
+                    <button 
+                      onClick={() => setShowManageStaffModal(true)}
+                      className="flex items-center gap-2 text-white hover:bg-white/20 px-3 py-2 rounded-xl transition-colors text-sm font-semibold border border-transparent hover:border-white/20"
+                    >
+                      <UsersIcon className="w-4 h-4" />
+                      Manage Staff
+                    </button>
+                  </>
                 )}
                 <button 
                   onClick={() => {setCurrentUser(null); setSelectedUserId('');}}
@@ -670,6 +712,75 @@
                         })
                       )}
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showManageSitesModal && (
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh] border border-gray-100">
+                <div className="px-6 py-5 border-b flex justify-between items-center bg-gradient-to-r from-slate-50 to-white">
+                  <h2 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">
+                    <MapPin className="w-6 h-6 text-indigo-600" />
+                    Manage Sites
+                  </h2>
+                  <button onClick={() => { setShowManageSitesModal(false); setSiteToDelete(null); }} className="p-2 hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-full transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                <div className="p-6 overflow-y-auto bg-slate-50/50">
+                  <p className="text-sm text-slate-500 mb-4">Danh sách các Site Name lấy từ các Job hiện tại. Xóa sẽ làm trống tên Site của các Job đang dùng nó.</p>
+                  <div className="space-y-2">
+                    {existingSites.length === 0 ? (
+                      <div className="text-center py-8 bg-white rounded-xl border border-dashed border-gray-300">
+                        <p className="text-sm text-slate-500">No sites found.</p>
+                      </div>
+                    ) : (
+                      existingSites.map(site => {
+                        const count = projects.filter(p => p.siteName === site).length;
+                        return (
+                          <div key={site} className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-indigo-100 transition-colors">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-slate-700">{site}</span>
+                              <span className="text-[10px] text-slate-400 font-medium">Đang dùng trong {count} job</span>
+                            </div>
+                            
+                            {siteToDelete === site ? (
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => setSiteToDelete(null)} className="text-xs font-bold px-2 py-1.5 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">Hủy</button>
+                                <button 
+                                  onClick={async () => {
+                                    const jobsToUpdate = projects.filter(p => p.siteName === site);
+                                    if(db) {
+                                      for (const job of jobsToUpdate) {
+                                        await setDoc(doc(db, 'projects', job.id), { ...job, siteName: '' });
+                                      }
+                                    } else {
+                                      setProjects(projects.map(p => p.siteName === site ? { ...p, siteName: '' } : p));
+                                    }
+                                    setSiteToDelete(null);
+                                  }} 
+                                  className="text-xs font-bold px-2 py-1.5 bg-rose-500 text-white hover:bg-rose-600 rounded-lg transition-colors shadow-sm"
+                                >
+                                  Xóa
+                                </button>
+                              </div>
+                            ) : (
+                              <button 
+                                onClick={() => setSiteToDelete(site)}
+                                className="p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 rounded-lg transition-colors"
+                                title="Xóa Site"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        )
+                      })
+                    )}
                   </div>
                 </div>
               </div>
@@ -951,15 +1062,6 @@
         </div>
       );
     }
-
-    const EXPECTED_HOURS = {
-      'Pre-Design': { 'Bungalow': 5.5, '2-Storey': 7, '2.5-Storey': 9 },
-      'Wall Panels': { 'Bungalow': 4.6, '2-Storey': 8, '2.5-Storey': 12 },
-      'Floor Cassette': { 'Bungalow': 0, '2-Storey': 7, '2.5-Storey': 10 },
-      'Roof Panels': { 'Bungalow': 3.3, '2-Storey': 4, '2.5-Storey': 6 },
-      'Lookouts': { 'Bungalow': 3.4, '2-Storey': 4, '2.5-Storey': 6 },
-      'Variation': { 'Bungalow': 8.25, '2-Storey': 12.75, '2.5-Storey': 19.25 }
-    };
 
     function StatisticsView({ projects, users }) {
       const [viewMode, setViewMode] = useState('count'); // 'count', 'average', 'total', 'productivity'
