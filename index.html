@@ -841,8 +841,13 @@
           const roofPanelsHrs = parseFloat(p.phases['DFM - Roof Panels']?.hoursSpent || 0);
           const lookoutsHrs = parseFloat(p.phases['DFM - Lookouts']?.hoursSpent || 0);
           const totalDfmHrs = wallPanelsHrs + floorCassetteHrs + roofPanelsHrs + lookoutsHrs;
+          
           const updatesHrs = Object.keys(p.phases)
-            .filter(phase => !PHASES.includes(phase))
+            .filter(phase => !PHASES.includes(phase) && !phase.toLowerCase().includes('checking'))
+            .reduce((sum, phase) => sum + parseFloat(p.phases[phase]?.hoursSpent || 0), 0);
+            
+          const checkingHrs = Object.keys(p.phases)
+            .filter(phase => phase.toLowerCase().includes('checking'))
             .reduce((sum, phase) => sum + parseFloat(p.phases[phase]?.hoursSpent || 0), 0);
 
           const row = {
@@ -880,7 +885,8 @@
             'Total Pre-Design Hrs': preDesignHrs,
             'Total DFM Hrs': totalDfmHrs,
             'Total Updates/Corrections Hrs': updatesHrs,
-            'OVERALL TOTAL HRS': preDesignHrs + totalDfmHrs + updatesHrs
+            'Total Checking Hrs': checkingHrs,
+            'OVERALL TOTAL HRS': preDesignHrs + totalDfmHrs + updatesHrs + checkingHrs
           };
 
           Object.keys(p.phases).forEach(phaseName => {
@@ -1988,8 +1994,13 @@
       const preDesignHrs = parseFloat(phasesForm['Pre-Design']?.hoursSpent || 0);
       const totalDfmHrs = ['DFM - Wall Panels', 'DFM - Floor Cassette', 'DFM - Roof Panels', 'DFM - Lookouts']
         .reduce((sum, phase) => sum + parseFloat(phasesForm[phase]?.hoursSpent || 0), 0);
+        
       const updatesHrs = Object.keys(phasesForm)
-        .filter(phase => !PHASES.includes(phase))
+        .filter(phase => !PHASES.includes(phase) && !phase.toLowerCase().includes('checking'))
+        .reduce((sum, phase) => sum + parseFloat(phasesForm[phase]?.hoursSpent || 0), 0);
+        
+      const checkingHrs = Object.keys(phasesForm)
+        .filter(phase => phase.toLowerCase().includes('checking'))
         .reduce((sum, phase) => sum + parseFloat(phasesForm[phase]?.hoursSpent || 0), 0);
 
       const orderedPhaseNames = useMemo(() => {
@@ -2324,6 +2335,8 @@
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total DFM: <span className="text-indigo-600 text-sm ml-1">{totalDfmHrs}</span> <span className="text-[10px] text-slate-400">hrs</span></span>
                   <span className="w-px h-4 bg-slate-300"></span>
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Updates: <span className="text-indigo-600 text-sm ml-1">{updatesHrs}</span> <span className="text-[10px] text-slate-400">hrs</span></span>
+                  <span className="w-px h-4 bg-slate-300"></span>
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Checking: <span className="text-indigo-600 text-sm ml-1">{checkingHrs}</span> <span className="text-[10px] text-slate-400">hrs</span></span>
                 </div>
                 {errorMsg && <p className="text-red-500 text-sm font-bold animate-pulse">{errorMsg}</p>}
               </div>
