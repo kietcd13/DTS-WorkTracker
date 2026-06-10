@@ -1107,6 +1107,7 @@
                 const pName = phaseName.toLowerCase();
                 if (pName.includes('correction')) category = 'Correction';
                 else if (pName.includes('update')) category = 'Update';
+                else if (pName.includes('checking')) category = 'Checking';
                 else if (pName.includes('pre-design')) category = 'Pre-Design';
                 else if (pName.includes('wall panels')) category = 'Wall Panels';
                 else if (pName.includes('floor cassette')) category = 'Floor Cassette';
@@ -1146,7 +1147,7 @@
         const sortedMonths = Array.from(allMonths).sort();
         let rowKeys = Array.from(rowKeysSet);
 
-        const predefinedOrder = ['Pre-Design', 'Wall Panels', 'Floor Cassette', 'Roof Panels', 'Lookouts', 'Variation', 'Update', 'Correction'];
+        const predefinedOrder = ['Pre-Design', 'Wall Panels', 'Floor Cassette', 'Roof Panels', 'Lookouts', 'Variation', 'Update', 'Correction', 'Checking'];
 
         rowKeys.sort((a, b) => {
           if (reportType === 'task-type') {
@@ -1897,7 +1898,7 @@
       });
       const [optAction, setOptAction] = useState('');
       const [optTarget, setOptTarget] = useState('');
-      const OPT_ACTIONS = ['Update', 'Correction'];
+      const OPT_ACTIONS = ['Update', 'Correction', 'Checking'];
       const OPT_TARGETS = ['Pre-Design', 'Wall Panels', 'Floor Cassette', 'Roof Panels', 'Lookouts'];
       
       const [errorMsg, setErrorMsg] = useState('');
@@ -1947,8 +1948,9 @@
       };
 
       const handleAddPhase = () => {
-        if (!optAction || !optTarget) return;
-        let baseName = `${optAction} ${optTarget}`;
+        if (!optAction) return;
+        if (optAction !== 'Checking' && !optTarget) return;
+        let baseName = optAction === 'Checking' ? 'Checking' : `${optAction} ${optTarget}`;
         let finalName = baseName;
         let count = 1;
         while(phasesForm[finalName]) {
@@ -2285,7 +2287,10 @@
                   <span className="text-sm font-bold text-slate-600">Add Optional Phase:</span>
                   <select
                     value={optAction}
-                    onChange={e => setOptAction(e.target.value)}
+                    onChange={e => {
+                      setOptAction(e.target.value);
+                      if (e.target.value === 'Checking') setOptTarget('');
+                    }}
                     className="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-medium bg-white"
                   >
                     <option value="">-- Action --</option>
@@ -2294,15 +2299,16 @@
                   <select
                     value={optTarget}
                     onChange={e => setOptTarget(e.target.value)}
-                    className="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-medium bg-white"
+                    disabled={optAction === 'Checking'}
+                    className={`px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none font-medium ${optAction === 'Checking' ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white focus:ring-2 focus:ring-indigo-500'}`}
                   >
                     <option value="">-- Phase --</option>
                     {OPT_TARGETS.map(op => <option key={op} value={op}>{op}</option>)}
                   </select>
                   <button
                     onClick={handleAddPhase}
-                    disabled={!optAction || !optTarget}
-                    className={`flex items-center gap-1 border px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-sm ${(!optAction || !optTarget) ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' : 'bg-white border-indigo-200 text-indigo-600 hover:bg-indigo-50'}`}
+                    disabled={!optAction || (optAction !== 'Checking' && !optTarget)}
+                    className={`flex items-center gap-1 border px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-sm ${(!optAction || (optAction !== 'Checking' && !optTarget)) ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' : 'bg-white border-indigo-200 text-indigo-600 hover:bg-indigo-50'}`}
                   >
                     <Plus className="w-4 h-4" /> Add
                   </button>
