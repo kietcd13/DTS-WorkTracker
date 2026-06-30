@@ -147,8 +147,8 @@
       </svg>
     );
 
-    const PHASES = ['Pre-Design', 'DFM - Wall Panels', 'DFM - Floor Cassette', 'DFM - Roof Panels', 'DFM - Lookouts'];
-    const OPTIONAL_PHASES = ['Update Pre - Design', 'Update DFM - Wall Panels', 'Update DFM - Floor Cassette', 'Update DFM - Roof Panels', 'Update DFM - Lookouts'];
+    const PHASES = ['Pre-Design', 'DFM - Wall Panels', 'DFM - Floor Cassette', 'DFM - Roof Panels', 'DFM - Lookouts', 'DFM - Factory Drawings'];
+    const OPTIONAL_PHASES = ['Update Pre - Design', 'Update DFM - Wall Panels', 'Update DFM - Floor Cassette', 'Update DFM - Roof Panels', 'Update DFM - Lookouts', 'Update DFM - Factory Drawings'];
     const PROGRESS_STATUSES = ['Not Started', 'In Progress', 'Checking', 'On Hold', 'Completed'];
     const BUILDING_TYPES = ['Bungalow', '2-Storey', '2.5-Storey'];
     
@@ -178,6 +178,7 @@
       'Floor Cassette': { 'Bungalow': 0, '2-Storey': 7, '2.5-Storey': 10 },
       'Roof Panels': { 'Bungalow': 3.3, '2-Storey': 4, '2.5-Storey': 6 },
       'Lookouts': { 'Bungalow': 3.4, '2-Storey': 4, '2.5-Storey': 6 },
+      'Factory Drawings': { 'Bungalow': 0, '2-Storey': 0, '2.5-Storey': 0 },
       'Variation': { 'Bungalow': 8.25, '2-Storey': 12.75, '2.5-Storey': 19.25 }
     };
 
@@ -849,7 +850,8 @@
           const floorCassetteHrs = parseFloat(p.phases['DFM - Floor Cassette']?.hoursSpent || 0);
           const roofPanelsHrs = parseFloat(p.phases['DFM - Roof Panels']?.hoursSpent || 0);
           const lookoutsHrs = parseFloat(p.phases['DFM - Lookouts']?.hoursSpent || 0);
-          const totalDfmHrs = wallPanelsHrs + floorCassetteHrs + roofPanelsHrs + lookoutsHrs;
+          const factoryDrawingsHrs = parseFloat(p.phases['DFM - Factory Drawings']?.hoursSpent || 0);
+          const totalDfmHrs = wallPanelsHrs + floorCassetteHrs + roofPanelsHrs + lookoutsHrs + factoryDrawingsHrs;
           
           const updatesHrs = Object.keys(p.phases)
             .filter(phase => !PHASES.includes(phase) && !phase.toLowerCase().includes('checking'))
@@ -890,6 +892,10 @@
             'Lookouts - Progress': p.phases['DFM - Lookouts']?.progress || '',
             'Lookouts - Hrs': p.phases['DFM - Lookouts']?.hoursSpent || 0,
             'Lookouts - Date Sent': formatDate(p.phases['DFM - Lookouts']?.dateSent),
+            
+            'Factory Drawings - Progress': p.phases['DFM - Factory Drawings']?.progress || '',
+            'Factory Drawings - Hrs': p.phases['DFM - Factory Drawings']?.hoursSpent || 0,
+            'Factory Drawings - Date Sent': formatDate(p.phases['DFM - Factory Drawings']?.dateSent),
 
             'Total Pre-Design Hrs': preDesignHrs,
             'Total DFM Hrs': totalDfmHrs,
@@ -1128,6 +1134,7 @@
                 else if (pName.includes('floor cassette')) category = 'Floor Cassette';
                 else if (pName.includes('roof panels')) category = 'Roof Panels';
                 else if (pName.includes('lookouts')) category = 'Lookouts';
+                else if (pName.includes('factory drawings')) category = 'Factory Drawings';
               }
 
               if (category) {
@@ -1162,7 +1169,7 @@
         const sortedMonths = Array.from(allMonths).sort();
         let rowKeys = Array.from(rowKeysSet);
 
-        const predefinedOrder = ['Pre-Design', 'Wall Panels', 'Floor Cassette', 'Roof Panels', 'Lookouts', 'Variation', 'Update', 'Correction', 'Checking'];
+        const predefinedOrder = ['Pre-Design', 'Wall Panels', 'Floor Cassette', 'Roof Panels', 'Lookouts', 'Factory Drawings', 'Variation', 'Update', 'Correction', 'Checking'];
 
         rowKeys.sort((a, b) => {
           if (reportType === 'task-type') {
@@ -1485,7 +1492,7 @@
     }
 
     function ProgressView({ projects, users }) {
-      const displayPhases = ['Pre-Design', 'DFM - Wall Panels', 'DFM - Floor Cassette', 'DFM - Roof Panels', 'DFM - Lookouts'];
+      const displayPhases = ['Pre-Design', 'DFM - Wall Panels', 'DFM - Floor Cassette', 'DFM - Roof Panels', 'DFM - Lookouts', 'DFM - Factory Drawings'];
       const normalize = str => str.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
       const [isExporting, setIsExporting] = useState(false);
@@ -1908,7 +1915,13 @@
     }
 
     function JobProgressModal({ job, currentUser, users, onClose, onSave, onDelete, existingSites }) {
-      const [phasesForm, setPhasesForm] = useState({ ...job.phases });
+      const [phasesForm, setPhasesForm] = useState(() => {
+        const form = { ...job.phases };
+        PHASES.forEach(p => {
+          if (!form[p]) form[p] = { progress: 'Not Started', hoursSpent: 0, dateSent: '' };
+        });
+        return form;
+      });
       const [jobInfoForm, setJobInfoForm] = useState({
         siteName: job.siteName || '',
         jobName: job.jobName || '',
@@ -1922,7 +1935,7 @@
       const [optAction, setOptAction] = useState('');
       const [optTarget, setOptTarget] = useState('');
       const OPT_ACTIONS = ['Update', 'Correction', 'Checking'];
-      const OPT_TARGETS = ['Pre-Design', 'Wall Panels', 'Floor Cassette', 'Roof Panels', 'Lookouts'];
+      const OPT_TARGETS = ['Pre-Design', 'Wall Panels', 'Floor Cassette', 'Roof Panels', 'Lookouts', 'Factory Drawings'];
       
       const [errorMsg, setErrorMsg] = useState('');
       const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -2009,7 +2022,7 @@
       const staffUsers = users.filter(u => u.role === 'Staff');
 
       const preDesignHrs = parseFloat(phasesForm['Pre-Design']?.hoursSpent || 0);
-      const totalDfmHrs = ['DFM - Wall Panels', 'DFM - Floor Cassette', 'DFM - Roof Panels', 'DFM - Lookouts']
+      const totalDfmHrs = ['DFM - Wall Panels', 'DFM - Floor Cassette', 'DFM - Roof Panels', 'DFM - Lookouts', 'DFM - Factory Drawings']
         .reduce((sum, phase) => sum + parseFloat(phasesForm[phase]?.hoursSpent || 0), 0);
         
       const updatesHrs = Object.keys(phasesForm)
