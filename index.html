@@ -2038,6 +2038,15 @@
         const basePhases = PHASES.filter(p => keys.includes(p));
         
         const optionalPhases = keys.filter(p => !PHASES.includes(p)).sort((a, b) => {
+          // Ưu tiên sắp xếp theo Date Sent (ngày trống sẽ đưa xuống cuối)
+          const dateA = phasesForm[a].dateSent || '9999-12-31';
+          const dateB = phasesForm[b].dateSent || '9999-12-31';
+          
+          if (dateA !== dateB) {
+            return dateA.localeCompare(dateB);
+          }
+
+          // Nếu trùng ngày hoặc cùng trống, sắp xếp theo tên
           const getBaseAndNum = (name) => {
             const match = name.match(/^(.*?)(?:\s\((\d+)\))?$/);
             return { base: match ? match[1] : name, num: match && match[2] ? parseInt(match[2], 10) : 1 };
